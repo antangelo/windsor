@@ -4,7 +4,7 @@
     "os": "none",
     "cpu": "pentium3",
     "llvm-target": "i686-elf",
-    "data-layout": "e-m:x-p:32:32-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32-a:0:32-S32",
+    "data-layout": "e-m:w-p:32:32-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32-a:0:32-S32",
     "target-endian": "little",
     "target-pointer-width": "32",
     "target-c-int-width": "32",
@@ -15,6 +15,11 @@
     "position-independent-executables": false,
     "relocation-model": "static",
     "panic-strategy": "abort",
-    "features": "+soft-float,+sse"
+    "features": "+soft-float,+sse",
+    "pre-link-args": {
+        "ld.lld": [
+            "--whole-archive"
+        ]
+    }
   }
   
