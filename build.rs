@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0-only WITH Linux-syscall-note */
 use cc::Build;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

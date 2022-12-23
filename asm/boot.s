@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0-only WITH Linux-syscall-note */
 .intel_syntax noprefix
 
 .section .hi_rom, "ax"

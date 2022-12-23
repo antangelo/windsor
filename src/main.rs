@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-only WITH Linux-syscall-note */
+
 #![no_std]
 #![no_main]
 
