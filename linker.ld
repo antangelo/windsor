@@ -1,8 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-only WITH Linux-syscall-note */
 ENTRY(mcpx_enter)
 
 MEMORY {
-    rom (rx) : ORIGIN = 0xFFFC0000, LENGTH = (256K + 1)
+    rom (rx) : ORIGIN = 0xFFFC0000, LENGTH = 256K
     ram (rwx) : ORIGIN = 0, LENGTH = 64M
 }
 
@@ -47,9 +46,14 @@ SECTIONS {
     .hi_rom (MCPX_BASE) : {
         KEEP(*(.hi_rom))
     } > rom
- 
+
     .reset (RESET_VECTOR) : {
         KEEP(*(.reset));
-        . = 0xFFFFFFFF;
+        . = 0xffffffff;
+
+        /* This will output the correct ROM size,
+         * but due to an LLVM bug won't link until
+         * LLVM 16 */
+        /*BYTE(0x0);*/
     } > rom
 }

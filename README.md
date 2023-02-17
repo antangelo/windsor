@@ -15,8 +15,9 @@ $ make
 
 ### With `llvm-objcopy`
 
-Post-processing can also be applied manually with llvm-objcopy. The size of the output ROM is off by one byte (for now)
-, so it needs to be extended manually.
+Post-processing can also be applied manually with llvm-objcopy.
+
+Due to an LLVM bug, the size of the output ROM is off by one byte, so it needs to be extended manually.
 
 ```sh
 $ cargo build --release

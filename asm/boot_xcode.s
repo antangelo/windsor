@@ -1,4 +1,3 @@
-/* SPDX-License-Identifier: GPL-2.0-only WITH Linux-syscall-note */
 .global mcpx_enter
 
 .section .low_rom, "ax"
@@ -24,7 +23,6 @@
 
 .org 0x40
 .long 0	
-                        // With imagebld, but we need a temp value
 
 .org 0x6c
 .long 0x00000107
@@ -330,11 +328,6 @@ xc_pci_out 0x80010010, 0xfd000000
 xc_poke 0x0, 0xfc1000b8
 xc_poke 0x4, 0x90e0ffff
 xc_end 0x806
-
-.byte 0x2e
-.byte 0x2e
-.byte 0x2e
-.byte 0x2e
 
 .org 0x1000
 

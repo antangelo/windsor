@@ -8,14 +8,14 @@
     "target-endian": "little",
     "target-pointer-width": "32",
     "target-c-int-width": "32",
-    "linker-flavor": "ld.lld",
-    "linker": "rust-lld",
+    "linker-flavor": "ld",
+    "linker": "ld.lld",
     "disable-redzone": true,
     "static-position-independent-executables": false,
     "position-independent-executables": false,
     "relocation-model": "static",
     "panic-strategy": "abort",
-    "features": "+soft-float,+sse",
+    "features": "+soft-float,-sse",
     "pre-link-args": {
         "ld.lld": [
             "--whole-archive"
