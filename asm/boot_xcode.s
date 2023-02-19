@@ -1,3 +1,4 @@
+.intel_syntax noprefix
 .global mcpx_enter
 
 .section .low_rom, "ax"
@@ -295,7 +296,6 @@ xc_poke 0x0f100228, 0x081205ff
 
 xc_poke 0x0f001218, 0x10000
 
-
 xc_pci_in 0x80000860
 xc_bittoggle 0xffffffff,0x00000400
 xc_pciout_a 0x80000860
@@ -332,4 +332,29 @@ xc_end 0x806
 .org 0x1000
 
 mcpx_enter:
+
+    // Copy code into RAM
+    mov edi, offset __start_code
+    mov esi, offset __end_rom
+
+    // Compute code size
+    mov ecx, offset __end_code
+    sub ecx, edi
+    shr ecx, 2
+
+    rep movsd
+
+    // Zero BSS
+    xor eax, eax
+    mov edi, offset __end_code
+
+    mov ecx, offset __end_bss
+    sub ecx, edi
+    shr ecx, 2
+
+    rep stosw
+
+    mov esp, offset 0x1000
+
+    // Done with ROM code, start the kernel
     jmp kenter

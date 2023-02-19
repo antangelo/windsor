@@ -1,12 +1,13 @@
 ENTRY(mcpx_enter)
 
+ROM_SIZE = 256K;
+LOW_ROM = 0xFFFC0000;
+
 MEMORY {
-    rom (rx) : ORIGIN = 0xFFFC0000, LENGTH = 256K
+    rom (rx) : ORIGIN = LOW_ROM, LENGTH = ROM_SIZE
     ram (rwx) : ORIGIN = 0, LENGTH = 64M
 }
 
-ROM_SIZE = 256K;
-LOW_ROM = 0xFFFC0000;
 RAM_CODE = 0x00100000;
 
 MCPX_BASE = 0xFFFFFE00;
@@ -23,6 +24,7 @@ SECTIONS {
     } > rom
 
     .text (RAM_CODE) : {
+        __start_code = .;
         *(.text)
         *(.text.*)
         *(.eh_frame_hdr)
@@ -34,12 +36,16 @@ SECTIONS {
         *(.data.*)
         *(.rodata)
         *(.rodata.*)
+        __end_code = .;
     } > ram AT>rom
 
-    .bss (RAM_CODE + SIZEOF(.text) + SIZEOF(.data)) : {
+    .bss (NOLOAD) : {
         *(.bss)
         *(.bss.*)
-    } > ram AT>rom
+        *(.sbss)
+        *(COMMON)
+        __end_bss = .;
+    } > ram
 
     /* Place reset vector startup code in MCPX overlap region to save space */
     . = MCPX_BASE;

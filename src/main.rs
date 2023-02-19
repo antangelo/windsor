@@ -6,7 +6,7 @@ use core::panic::PanicInfo;
 const ASTRING: &str = "Hello World";
 
 #[no_mangle]
-fn kenter() -> ! {
+pub unsafe extern "C" fn kenter() -> ! {
     let mut i = 0;
     loop {
         i = foo(i);
