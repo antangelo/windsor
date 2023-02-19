@@ -334,11 +334,11 @@ xc_end 0x806
 mcpx_enter:
 
     // Copy code into RAM
-    mov edi, offset __start_code
-    mov esi, offset __end_rom
+    mov edi, offset __start_code_ram
+    mov esi, offset __start_code_rom
 
     // Compute code size
-    mov ecx, offset __end_code
+    mov ecx, offset __end_code_ram
     sub ecx, edi
     shr ecx, 2
 
@@ -346,9 +346,9 @@ mcpx_enter:
 
     // Zero BSS
     xor eax, eax
-    mov edi, offset __end_code
+    mov edi, offset __end_code_ram
 
-    mov ecx, offset __end_bss
+    mov ecx, offset __end_bss_ram
     sub ecx, edi
     shr ecx, 2
 

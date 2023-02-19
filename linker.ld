@@ -20,11 +20,9 @@ SECTIONS {
 
     .low_rom (LOW_ROM) : {
         KEEP(*(.low_rom));
-        __end_rom = .;
     } > rom
 
     .text (RAM_CODE) : {
-        __start_code = .;
         *(.text)
         *(.text.*)
         *(.eh_frame_hdr)
@@ -36,7 +34,6 @@ SECTIONS {
         *(.data.*)
         *(.rodata)
         *(.rodata.*)
-        __end_code = .;
     } > ram AT>rom
 
     .bss (NOLOAD) : {
@@ -44,7 +41,6 @@ SECTIONS {
         *(.bss.*)
         *(.sbss)
         *(COMMON)
-        __end_bss = .;
     } > ram
 
     /* Place reset vector startup code in MCPX overlap region to save space */
@@ -62,4 +58,9 @@ SECTIONS {
          * LLVM 16 */
         /*BYTE(0x0);*/
     } > rom
+
+    __start_code_ram = ADDR(.text);
+    __start_code_rom = LOADADDR(.text);
+    __end_code_ram = ADDR(.text) + SIZEOF(.text) + SIZEOF(.data);
+    __end_bss_ram = ADDR(.bss) + SIZEOF(.bss);
 }
