@@ -1,25 +1,23 @@
 #![no_std]
 #![no_main]
+#![feature(pointer_byte_offsets)]
+
+mod cpu;
+mod encoder;
+mod i2c;
+mod nv2a;
+mod pci;
+mod smbus;
 
 use core::panic::PanicInfo;
 
-const ASTRING: &str = "Hello World";
-
 #[no_mangle]
-pub unsafe extern "C" fn kenter() -> ! {
-    let mut i = 0;
-    loop {
-        i = foo(i);
-        bar(ASTRING);
-    }
-}
+pub extern "C" fn kenter() -> ! {
+    nv2a::set_pcrtc_start_addr(0xf0000000 | (64 * 0x10_0000 - 0x40_0000));
+    pci::initialize_agp();
+    nv2a::init_gpu();
 
-pub fn foo(i: i32) -> i32 {
-    return i + 1;
-}
-
-pub fn bar(s: &str) {
-    panic!("{}", s);
+    loop {}
 }
 
 #[panic_handler]

@@ -354,7 +354,7 @@ mcpx_enter:
 
     rep stosw
 
-    mov esp, offset 0x1000
+    mov esp, offset 0x9000
 
     // Done with ROM code, start the kernel
     jmp kenter
