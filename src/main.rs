@@ -13,9 +13,11 @@ use core::panic::PanicInfo;
 
 #[no_mangle]
 pub extern "C" fn kenter() -> ! {
-    nv2a::set_pcrtc_start_addr(0xf0000000 | (64 * 0x10_0000 - 0x40_0000));
+    let mut gpu = nv2a::get_device();
+    nv2a::set_pcrtc_start_addr(&mut gpu, 0xf0000000 | (64 * 0x10_0000 - 0x40_0000));
     pci::initialize_agp();
-    nv2a::init_gpu();
+
+    nv2a::init_gpu(&mut gpu);
 
     loop {}
 }
