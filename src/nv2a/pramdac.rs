@@ -1,86 +1,38 @@
+use autopad::autopad;
 use volatile_register::RW;
 
 use crate::encoder;
 
+autopad!(
 #[repr(C)]
 pub struct PRAMDAC {
-    pad0: [u8; 0x500],
-
-    // 0x500
-    pub nvpll: RW<u32>,
-
-    // 0x504
+    0x500 => pub nvpll: RW<u32>,
     pub mpll: RW<u32>,
     pub vpll: RW<u32>,
 
-    pad1: [u8; 0x514 - 0x50c],
+    0x514 => pub pll_test_counter: RW<u32>,
+    0x600 => pub gen_ctl: RW<u32>,
+    0x630 => pub fmt0: RW<u32>,
 
-    pub pll_test_counter: RW<u32>,
-
-    pad2: [u8; 0x600 - 0x518],
-
-    pub gen_ctl: RW<u32>,
-
-    pad3: [u8; 0x630 - 0x604],
-
-    pub fmt0: RW<u32>,
-
-    pad4: [u8; 0x800 - 0x634],
-
-    // 0x800
-    pub vdisplay_end: RW<u32>,
-
-    // 0x804
+    0x800 => pub vdisplay_end: RW<u32>,
     pub vtotal: RW<u32>,
-
-    // 0x808
     pub vcrtc: RW<u32>,
-
-    // 0x80c
     pub vsync_start: RW<u32>,
-
-    // 0x810
     pub vsync_end: RW<u32>,
-
-    // 0x814
     pub vvalid_start: RW<u32>,
-
-    // 0x818
     pub vvalid_end: RW<u32>,
 
-    // 0x81c
-    pad8: u32,
-
-    // 0x820
-    pub hdisplay_end: RW<u32>,
-
-    // 0x824
+    0x820 => pub hdisplay_end: RW<u32>,
     pub htotal: RW<u32>,
-
-    // 0x828
     pub hcrtc: RW<u32>,
-
-    // 0x82c
     pub hstart: RW<u32>,
-
-    // 0x830
     pub hsync_end: RW<u32>,
-
-    // 0x834
     pub hvalid_start: RW<u32>,
-
-    // 0x838
     pub hvalid_end: RW<u32>,
 
-    pad11: [u8; 0x84c - 0x83c],
+    0x84c => pub fmt1: RW<u32>,
 
-    // 0x84c
-    pub fmt1: RW<u32>,
-
-    pad12: [u8; 0x880 - 0x850],
-
-    // 0x880
-    pub fmt2: RW<u32>,
+    0x880 => pub fmt2: RW<u32>,
 
     // 0x884 - Magic configuration registers
     pub r884: RW<u32>,
@@ -91,11 +43,9 @@ pub struct PRAMDAC {
     pub r898: RW<u32>,
     pub r89c: RW<u32>,
 
-    pad13: [u8; 0x8c4 - 0x8a0],
-
-    // 0x8c4
-    pub fmt3: RW<u32>,
+    0x8c4 => pub fmt3: RW<u32>,
 }
+);
 
 impl PRAMDAC {
     pub fn init(&mut self, enc: &encoder::Model) {

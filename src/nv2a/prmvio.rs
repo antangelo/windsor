@@ -1,19 +1,16 @@
+use autopad::autopad;
 use volatile_register::RW;
 
+autopad!(
 #[repr(C)]
 pub struct PRMVIO {
-    pad0: [u8; 0x3c4],
-
-    // 0x3c4
-    pub seq_idx: RW<u8>,
+    0x3c4 => pub seq_idx: RW<u8>,
     pub seq_data: RW<u8>,
 
-    pad1: [u8; 0x3ce - 0x3c6],
-
-    // 0x3ce
-    pub graph_idx: RW<u8>,
+    0x3ce => pub graph_idx: RW<u8>,
     pub graph_data: RW<u8>,
 }
+);
 
 impl PRMVIO {
     pub unsafe fn seq(&mut self, idx: u8, data: u8) {

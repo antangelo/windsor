@@ -1,25 +1,18 @@
 use crate::encoder;
+use autopad::autopad;
 use volatile_register::RW;
 
+autopad!(
 #[repr(C)]
 pub struct PRMCIO {
-    pad0: [u8; 0x3c0],
+    0x3c0 => pub vga_attr: RW<u8>,
 
-    // 0x3c0
-    pub vga_attr: RW<u8>,
-
-    pad1: [u8; 0x3d4 - 0x3c1],
-
-    // 0x3d4
-    pub vga_color_idx: RW<u8>,
-
-    // 0x3d5
+    0x3d4 => pub vga_color_idx: RW<u8>,
     pub vga_color_data: RW<u8>,
 
-    pad2: [u8; 0x3da - 0x3d6],
-
-    pub vga_color_in_stat: RW<u8>,
+    0x3da => pub vga_color_in_stat: RW<u8>,
 }
+);
 
 impl PRMCIO {
     pub unsafe fn write_attr(&mut self, idx: u8, data: u8) {
