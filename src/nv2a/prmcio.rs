@@ -85,7 +85,7 @@ impl PRMCIO {
 
         // HSYNCEND
         let tmp = self.read_reg(5) & 0xe0;
-        self.write_reg(5, tmp | ((hsync_start + 16) / 8 - 1) as u8 & 0x1f);
+        self.write_reg(5, tmp | (((hsync_start + 16) / 8 - 1) as u8 & 0x1f));
 
         // HTOTAL
         self.write_reg(0, (vm.nvhtotal / 8 - 5) as u8);
@@ -146,7 +146,7 @@ impl PRMCIO {
         self.write_reg(9, tmp | ((((vm.height - 1) >> 4) & 0x20) as u8));
         let tmp = self.read_reg(7) & 0xf7;
         self.write_reg(7, tmp | ((((vm.height - 1) >> 5) & 0x08) as u8));
-        self.write_reg(0x15, ((vm.height - 1) & 0x08) as u8);
+        self.write_reg(0x15, ((vm.height - 1) & 0xff) as u8);
 
         // LINECOMP
         let linecomp = 0x3ff;
@@ -157,14 +157,21 @@ impl PRMCIO {
         self.write_reg(0x18, (linecomp & 0xff) as u8);
 
         // REPAINT1
+        let tmp = if vm.width < 1280 {
+            0x04
+        } else {
+            0x00
+        };
+        self.write_reg(0x1a, tmp);
+
         let mut tmp = ((vm.nvhtotal / 8 - 5) & 0x40) >> 2;
-        tmp |= ((vm.height - 1) * 0x400) >> 7;
+        tmp |= ((vm.height - 1) & 0x400) >> 7;
         tmp |= (vm.crtc_vstart & 0x400) >> 8;
-        tmp |= ((vm.height - 1) * 0x400) >> 9;
+        tmp |= ((vm.height - 1) & 0x400) >> 9;
         tmp |= (vm.crtc_vstart & 0x400) >> 10;
         self.write_reg(0x25, tmp as u8);
 
-        let tmp = core::cmp::max(vm.pixel_depth, 3) as u8;
+        let tmp = core::cmp::min(vm.pixel_depth, 3) as u8;
         self.write_reg(0x28, tmp | 0x80);
 
         let mut tmp = self.read_reg(0x2d) & 0xe0;

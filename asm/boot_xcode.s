@@ -337,19 +337,25 @@ mcpx_enter:
     mov edi, offset __start_code_ram
     mov esi, offset __start_code_rom
 
-    // Compute code size
-    mov ecx, offset __end_code_ram
-    sub ecx, edi
+    mov ecx, offset __code_size
+    shr ecx, 2
+
+    rep movsd
+
+    // Copy data into RAM
+    mov edi, offset __start_data_ram
+    mov esi, offset __start_data_rom
+
+    mov ecx, offset __data_size
     shr ecx, 2
 
     rep movsd
 
     // Zero BSS
     xor eax, eax
-    mov edi, offset __end_code_ram
+    mov edi, offset __start_bss_ram
 
-    mov ecx, offset __end_bss_ram
-    sub ecx, edi
+    mov ecx, offset __bss_size
     shr ecx, 2
 
     rep stosw

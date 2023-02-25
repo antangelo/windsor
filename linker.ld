@@ -27,6 +27,7 @@ SECTIONS {
         *(.text.*)
         *(.eh_frame_hdr)
         *(.eh_frame)
+        . = ALIGN(16);
     } > ram AT>rom
 
     .data (RAM_CODE + SIZEOF(.text)) : {
@@ -34,6 +35,7 @@ SECTIONS {
         *(.data.*)
         *(.rodata)
         *(.rodata.*)
+        . = ALIGN(16);
     } > ram AT>rom
 
     .bss (NOLOAD) : {
@@ -61,6 +63,10 @@ SECTIONS {
 
     __start_code_ram = ADDR(.text);
     __start_code_rom = LOADADDR(.text);
-    __end_code_ram = ADDR(.text) + SIZEOF(.text) + SIZEOF(.data);
-    __end_bss_ram = ADDR(.bss) + SIZEOF(.bss);
+    __start_data_ram = ADDR(.data);
+    __start_data_rom = LOADADDR(.data);
+    __start_bss_ram = ADDR(.bss);
+    __code_size = SIZEOF(.text);
+    __data_size = SIZEOF(.data);
+    __bss_size = SIZEOF(.bss);
 }
