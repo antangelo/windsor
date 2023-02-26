@@ -112,6 +112,7 @@ impl PRMCIO {
         let linestride = vm.width / 8 * vm.pixel_depth;
         let tmp = self.read_reg(0x19) & 0x1f;
         self.write_reg(0x19, tmp | ((linestride >> 3) & 0xe0) as u8);
+        self.write_reg(0x13, (linestride & 0xff) as u8);
     }
 
     // Safety: must be called in correct pramdac/horizontal mode sequence
