@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 #![feature(pointer_byte_offsets)]
+#![feature(rustc_private)]
 
 mod cpu;
 mod encoder;
@@ -8,29 +9,24 @@ mod i2c;
 mod nv2a;
 mod pci;
 mod smbus;
+mod font;
+mod font2;
+mod print;
 
 use core::panic::PanicInfo;
 
 const FB_SIZE: u32 = 0x40_0000;
 const FB_START: u32 = 0xf000_0000 | (64 * 1024 * 1024 - FB_SIZE);
 
-struct VGAPrinter {
-    cursor_x: u32,
-    cursor_y: u32,
-}
+fn clear_screen(vm: &encoder::VideoModeInfo, argb: u32) {
+    let addr = FB_START;
 
-impl VGAPrinter {
-}
-
-fn clear_screen(vm: &encoder::VideoModeInfo) {
-    let mut addr = FB_START;
-
-    for _ in 0..vm.height {
+    for y in 0..vm.height {
+        let addr = addr + 4 * vm.width * y;
         for n in 0..vm.width {
-            unsafe { *((addr + 4 * n) as *mut u32) = 0xff7aa0ff; }
+            let addr = addr + 4 * n;
+            unsafe { *(addr as *mut u32) = argb; }
         }
-
-        addr += 4 * vm.width;
     }
 }
 
@@ -38,11 +34,19 @@ fn clear_screen(vm: &encoder::VideoModeInfo) {
 pub extern "C" fn kenter() -> ! {
     pci::initialize_devices();
     pci::initialize_agp();
+
+    let encoder = encoder::Model::detect();
+    let av_mode = encoder::AVMode::detect();
+    let video_mode = av_mode.get_video_mode(&encoder).unwrap();
+    //clear_screen(&video_mode, 0xff7aa0ff);
+    clear_screen(&video_mode, 0xff00_0000);
+
     let gpu = nv2a::get_device();
+    gpu.init(FB_START);
 
-    let video_mode = gpu.init(FB_START);
-
-    clear_screen(&video_mode);
+    let mut printer = print::VGAPrinter::new(FB_START as *mut u32, &video_mode);
+    printer.print_string_bytes(print::COLOR_WHITE, "windsor ".as_bytes());
+    printer.print_string_bytes(print::COLOR_WHITE, env!("CARGO_PKG_VERSION").as_bytes());
 
     loop {
         if gpu.pmc.intr.read() != 0 {
@@ -53,5 +57,11 @@ pub extern "C" fn kenter() -> ! {
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
+    for n in 0..FB_SIZE {
+        unsafe {
+            *((FB_START + n) as *mut u8) = 0xff;
+        }
+    }
+
     loop {}
 }
