@@ -10,7 +10,6 @@ mod nv2a;
 mod pci;
 mod smbus;
 mod font;
-mod font2;
 mod print;
 
 use core::panic::PanicInfo;

@@ -1,4 +1,4 @@
-use crate::{encoder, font, font2};
+use crate::{encoder, font};
 
 #[derive(Copy, Clone, Debug)]
 pub struct RGBA(u8, u8, u8, u8);
@@ -11,26 +11,31 @@ pub unsafe fn print_char2(
     rgba: &RGBA,
     ch: u8,
     ) -> u32 {
-    let mask = if font2::FONT_VMIRROR > 0 {
+    let mask = if font::VMIRROR > 0 {
         0x01
     } else {
         0x80
     };
 
-    let font_loc = (ch as u32) * ((font2::FONT_WIDTH + 7) / 8) * font2::FONT_HEIGHT;
+    let font_loc = (ch as u32) * ((font::WIDTH + 7) / 8) * font::HEIGHT;
     let dest = dest as *mut u8;
 
-    for y in 0..font2::FONT_HEIGHT {
+    for y in 0..font::HEIGHT {
         let font_loc = font_loc + y;
-        let font = font2::FONT[font_loc as usize];
+        let font = font::FONT[font_loc as usize];
 
         let y_offset = y * bytes_per_line;
         let dest = dest.add(y_offset as usize);
 
-        for x in 0..font2::FONT_WIDTH {
+        for x in 0..font::WIDTH {
             let dest = dest.add(4 * (x as usize));
+            let mask = if font::VMIRROR > 0 {
+                mask << x
+            } else {
+                mask >> x
+            };
 
-            if font & (mask >> x) == 0 {
+            if font & mask == 0 {
                 continue;
             }
 
@@ -41,61 +46,7 @@ pub unsafe fn print_char2(
         }
     }
 
-    font2::FONT_WIDTH
-}
-
-unsafe fn print_char(
-    dest: *mut u32,
-    bytes_per_line: u32,
-    rgba: &RGBA,
-    ch: u8,
-    ) -> u32 {
-    if ch == b'\t' {
-        let dw = (dest as u32) % bytes_per_line;
-        let dw = (dw - 1) % (32 << 2);
-        return ((32 << 2) - dw) >> 2;
-    }
-
-    let space_width = 5;
-    if ch < b'!' || ch > b'~' {
-        return space_width;
-    }
-
-    let start = font::FONT_WA_STARTS[(ch - b' ' - 1) as usize];
-    let width = font::FONT_WA_STARTS[(ch - b' ') as usize];
-    let width = width - start;
-
-    let dest = dest as *mut u8;
-
-    for y in 0..font::HEIGHT {
-        let start = start + y * font::WIDTH;
-
-        let y_offset = (y as usize) * (bytes_per_line as usize);
-        let dest = dest.byte_add(y_offset);
-
-        for x in 0..width {
-            let start = start + x;
-            let dest = dest.byte_add(4 * (x as usize));
-
-            let b = font::FONT_BA_CHARSET[(start >> 1) as usize];
-            let b = if start & 1 == 0 {
-                b >> 4
-            } else {
-                b & 0xf
-            };
-
-            let b = b as u32;
-
-            if true && b != 0 {
-                dest.byte_add(0).write(((b * rgba.0 as u32) >> 4) as u8);
-                dest.byte_add(1).write(((b * rgba.1 as u32) >> 4) as u8);
-                dest.byte_add(2).write(((b * rgba.2 as u32) >> 4) as u8);
-                dest.byte_add(3).write(rgba.3);
-            }
-        }
-    }
-
-    return width as u32;
+    font::WIDTH
 }
 
 unsafe fn print_string_bytes(
