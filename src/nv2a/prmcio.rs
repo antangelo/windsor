@@ -158,11 +158,7 @@ impl PRMCIO {
         self.write_reg(0x18, (linecomp & 0xff) as u8);
 
         // REPAINT1
-        let tmp = if vm.width < 1280 {
-            0x04
-        } else {
-            0x00
-        };
+        let tmp = if vm.width < 1280 { 0x04 } else { 0x00 };
         self.write_reg(0x1a, tmp);
 
         let mut tmp = ((vm.nvhtotal / 8 - 5) & 0x40) >> 2;

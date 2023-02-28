@@ -87,7 +87,9 @@ impl NV2A {
 
     pub fn init(&mut self, fbaddr: u32) -> encoder::VideoModeInfo {
         // FIXME: Support 128MB
-        unsafe { self.set_fb(fbaddr & 0x0fff_ffff); }
+        unsafe {
+            self.set_fb(fbaddr & 0x0fff_ffff);
+        }
         self.pfb.init(false);
 
         let encoder = encoder::Model::detect();
@@ -124,13 +126,13 @@ impl NV2A {
             io::write_u8(0x80d6, 5);
 
             if true {
-            self.pcrtc.intr_en.write(0x1);
-            self.pcrtc.intr.write(0x1);
-            self.pcrtc.intr_en.write(0x1);
+                self.pcrtc.intr_en.write(0x1);
+                self.pcrtc.intr.write(0x1);
+                self.pcrtc.intr_en.write(0x1);
 
-            self.pmc.intr_en.write(0x1);
-            self.pmc.intr.write(0x1);
-            self.pmc.intr_en.write(0x1);
+                self.pmc.intr_en.write(0x1);
+                self.pmc.intr.write(0x1);
+                self.pmc.intr_en.write(0x1);
             }
 
             self.set_fb(fbaddr);

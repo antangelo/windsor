@@ -62,7 +62,12 @@ unsafe fn init_devices_unsafe() {
     let tmp = read_dword(PCIBus::Bus1, PCIDevice::Dev0, 4);
     write_dword(PCIBus::Bus1, PCIDevice::Dev0, 0x4, tmp | 7);
     let tmp = read_dword(PCIBus::Bus1, PCIDevice::Dev1e, 0x3c);
-    write_dword(PCIBus::Bus1, PCIDevice::Dev0, 0x3c, (tmp & 0xffff_ff00) | 0x0103);
+    write_dword(
+        PCIBus::Bus1,
+        PCIDevice::Dev0,
+        0x3c,
+        (tmp & 0xffff_ff00) | 0x0103,
+    );
     write_dword(PCIBus::Bus1, PCIDevice::Dev0, 0x4c, 0x114);
 }
 

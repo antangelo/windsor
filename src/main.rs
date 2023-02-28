@@ -2,15 +2,17 @@
 #![no_main]
 #![feature(pointer_byte_offsets)]
 #![feature(panic_info_message)]
+#![feature(const_mut_refs)]
+#![feature(const_trait_impl)]
 
 mod cpu;
 mod encoder;
+mod font;
 mod i2c;
 mod nv2a;
 mod pci;
-mod smbus;
-mod font;
 mod print;
+mod smbus;
 
 use core::panic::PanicInfo;
 
@@ -24,13 +26,24 @@ fn clear_screen(vm: &encoder::VideoModeInfo, argb: u32) {
         let addr = addr + 4 * vm.width * y;
         for n in 0..vm.width {
             let addr = addr + 4 * n;
-            unsafe { *(addr as *mut u32) = argb; }
+            unsafe {
+                *(addr as *mut u32) = argb;
+            }
         }
     }
 }
 
 #[no_mangle]
 pub extern "C" fn kenter() -> ! {
+    unsafe {
+        // Not necessary currently
+        // We also don't reload segments, so it may be a nop
+        cpu::gdt::lgdt(&mut cpu::gdt::GDTR, cpu::gdt::GDT);
+
+        cpu::irq::setup_irq();
+        cpu::idt::lidt(&cpu::irq::IDTR);
+    }
+
     pci::initialize_devices();
     pci::initialize_agp();
 
