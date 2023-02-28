@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 #![feature(pointer_byte_offsets)]
-#![feature(rustc_private)]
+#![feature(panic_info_message)]
 
 mod cpu;
 mod encoder;
@@ -55,10 +55,21 @@ pub extern "C" fn kenter() -> ! {
 }
 
 #[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
-    for n in 0..FB_SIZE {
-        unsafe {
-            *((FB_START + n) as *mut u8) = 0xff;
+fn panic(info: &PanicInfo) -> ! {
+    unsafe {
+        core::ptr::write_bytes(FB_START as *mut u8, 0xff, FB_SIZE as usize);
+    }
+
+    let encoder = encoder::Model::detect();
+    let av_mode = encoder::AVMode::detect();
+    let video_mode = av_mode.get_video_mode(&encoder).unwrap();
+
+    let mut printer = print::VGAPrinter::new(FB_START as *mut u32, &video_mode);
+    printer.print_string_bytes(print::COLOR_BLACK, b"Kernel panic!\n\n");
+
+    if let Some(args) = info.message() {
+        if let Some(msg) = args.as_str() {
+            printer.print_string_bytes(print::COLOR_BLACK, msg.as_bytes());
         }
     }
 

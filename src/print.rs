@@ -4,6 +4,7 @@ use crate::{encoder, font};
 pub struct RGBA(u8, u8, u8, u8);
 
 pub const COLOR_WHITE: RGBA = RGBA(0xff, 0xff, 0xff, 0xff);
+pub const COLOR_BLACK: RGBA = RGBA(0x0, 0x0, 0x0, 0xff);
 
 pub unsafe fn print_char2(
     dest: *mut u32,
@@ -90,20 +91,54 @@ impl VGAPrinter {
     }
 
     pub fn print_string_bytes(&mut self, rgba: RGBA, string: &[u8]) {
-        let width = unsafe {
-            print_string_bytes(
-                self.fb_addr.byte_add((self.cursor_y * self.fb_width * self.bpp + self.cursor_x) as usize),
-                self.fb_width * self.bpp,
-                &rgba,
-                string,
-                )
-        };
+        let mut string_lines = string.split(|ch| *ch == b'\n').peekable();
 
-        self.cursor_x += width * self.bpp;
-        if self.cursor_x > ((self.fb_width - self.margin_x) * self.bpp) {
-            self.cursor_y += font::HEIGHT as u32;
-            self.cursor_x = self.margin_x * self.bpp;
+        while let Some(line) = string_lines.next() {
+            let width = unsafe {
+                print_string_bytes(
+                    self.fb_addr.byte_add((self.cursor_y * self.fb_width * self.bpp + self.cursor_x) as usize),
+                    self.fb_width * self.bpp,
+                    &rgba,
+                    line,
+                    )
+            };
+
+            self.cursor_x += width * self.bpp;
+            if (string_lines.peek().is_some()) || (self.cursor_x > ((self.fb_width - self.margin_x) * self.bpp)) {
+                self.cursor_y += font::HEIGHT as u32;
+                self.cursor_x = self.bpp + self.margin_x * self.bpp;
+            }
         }
+    }
+
+    pub fn print_hex(&mut self, rgba: RGBA, mut val: u32) {
+        if val == 0 {
+            self.print_string_bytes(rgba, &[b'0']);
+            return;
+        }
+
+        let mut buf: [u8; 8] = [0; 8];
+        let mut chars_used = 0;
+        let base = 16;
+
+        while val != 0 {
+            let digit = val % base;
+            val -= digit;
+            val /= base;
+
+            let (base_char, digit_sub) = if digit >= 10 {
+                (b'a', 10)
+            } else {
+                (b'0', 0)
+            };
+
+            assert!(chars_used < 16);
+            buf[chars_used] = base_char + ((digit - digit_sub) as u8);
+            chars_used += 1;
+        }
+
+        buf[0..chars_used].reverse();
+        self.print_string_bytes(rgba, &buf);
     }
 }
 
