@@ -333,16 +333,7 @@ xc_end 0x806
 
 mcpx_enter:
 
-    // Copy code into RAM
-    mov edi, offset __start_code_ram
-    mov esi, offset __start_code_rom
-
-    mov ecx, offset __code_size
-    shr ecx, 2
-
-    rep movsd
-
-    // Copy data into RAM
+    // Copy rwdata into RAM
     mov edi, offset __start_data_ram
     mov esi, offset __start_data_rom
 
@@ -360,7 +351,8 @@ mcpx_enter:
 
     rep stosw
 
-    mov esp, offset 0x9000
+    mov esp, offset 0x90000
+    mov ebp, esp
 
     // Done with ROM code, start the kernel
     jmp kenter
