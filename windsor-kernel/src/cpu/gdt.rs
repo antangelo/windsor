@@ -1,5 +1,5 @@
-use proc_bitfield::bitfield;
 use core::arch::asm;
+use proc_bitfield::bitfield;
 
 bitfield!(
 pub const struct GDTSegment(pub u64): FromRaw {

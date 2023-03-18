@@ -1,26 +1,41 @@
-use std::path::Path;
+use build_tool_lib::{binary, cargo, config};
 use colored::Colorize;
-use build_tool_lib::{cargo, binary, config};
+use std::path::Path;
 
 fn build_boot(kernel_path: &String) -> Result<(), String> {
     let boot_args = vec!["--profile=opt-size"];
     let boot_path = std::path::Path::new(config::BOOT_WORKSPACE_NAME);
 
     let mut boot_envs: Vec<(String, String)> = std::env::vars().collect();
-    boot_envs.push((String::from(config::KERNEL_ELF_PATH_ENV), String::from(kernel_path)));
+    boot_envs.push((
+        String::from(config::KERNEL_ELF_PATH_ENV),
+        String::from(kernel_path),
+    ));
 
-    println!("{} {}", "Building crate".green().bold(), config::BOOT_WORKSPACE_NAME);
-    println!("{}: {}", "Created build args".green().bold(), boot_args.join(" "));
+    println!(
+        "{} {}",
+        "Building crate".green().bold(),
+        config::BOOT_WORKSPACE_NAME
+    );
+    println!(
+        "{}: {}",
+        "Created build args".green().bold(),
+        boot_args.join(" ")
+    );
 
     cargo::build(boot_path, &boot_args, &boot_envs).map_err(|e| e.to_string())?;
 
-    println!("{} {}", "Creating output binary".green().bold(), config::OUTPUT_BINARY);
+    println!(
+        "{} {}",
+        "Creating output binary".green().bold(),
+        config::OUTPUT_BINARY
+    );
 
-    let output_binary = cargo::target_output_file(&boot_args, config::TARGET, config::BOOT_WORKSPACE_NAME);
+    let output_binary =
+        cargo::target_output_file(&boot_args, config::TARGET, config::BOOT_WORKSPACE_NAME);
     let output_path = Path::new(Path::new("windsor.bin"));
     binary::objcopy_bin(&output_binary, &output_path).map_err(|e| e.to_string())?;
-    binary::pad_binary(&output_path, 262144)
-        .map_err(|e| e.to_string())?;
+    binary::pad_binary(&output_path, 262144).map_err(|e| e.to_string())?;
 
     Ok(())
 }
@@ -30,12 +45,24 @@ fn build_kernel() -> Result<String, String> {
     let krnl_args: Vec<&str> = vec![];
     let krnl_envs: Vec<(String, String)> = std::env::vars().collect();
 
-    println!("{} {}", "Building crate".green().bold(), config::KRNL_WORKSPACE_NAME);
-    println!("{}: {}", "Created build args".green().bold(), krnl_args.join(" "));
+    println!(
+        "{} {}",
+        "Building crate".green().bold(),
+        config::KRNL_WORKSPACE_NAME
+    );
+    println!(
+        "{}: {}",
+        "Created build args".green().bold(),
+        krnl_args.join(" ")
+    );
 
     cargo::build(krnl_path, &krnl_args, &krnl_envs).map_err(|e| e.to_string())?;
 
-    cargo::target_output_file(&krnl_args, config::TARGET, config::KRNL_WORKSPACE_NAME).into_os_string().to_str().map(|s| String::from(s)).ok_or(String::from("Failed to get kernel target output path"))
+    cargo::target_output_file(&krnl_args, config::TARGET, config::KRNL_WORKSPACE_NAME)
+        .into_os_string()
+        .to_str()
+        .map(|s| String::from(s))
+        .ok_or(String::from("Failed to get kernel target output path"))
 }
 
 fn main() -> Result<(), String> {

@@ -1,6 +1,13 @@
-use std::{process::Command, path::{Path, PathBuf}};
+use std::{
+    path::{Path, PathBuf},
+    process::Command,
+};
 
-pub fn build(dir: impl AsRef<Path>, args: &[&str], envs: &[(String, String)]) -> Result<(), Box<dyn std::error::Error>> {
+pub fn build(
+    dir: impl AsRef<Path>,
+    args: &[&str],
+    envs: &[(String, String)],
+) -> Result<(), Box<dyn std::error::Error>> {
     let mut build_args = vec!["build"];
     build_args.extend_from_slice(args);
 

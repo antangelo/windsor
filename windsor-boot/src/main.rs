@@ -4,8 +4,6 @@
 #![feature(panic_info_message)]
 #![feature(const_mut_refs)]
 #![feature(const_trait_impl)]
-#![feature(naked_functions)]
-#![feature(const_slice_from_raw_parts_mut)]
 
 mod cpu;
 mod i2c;
