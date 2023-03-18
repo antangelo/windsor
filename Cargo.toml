@@ -3,9 +3,17 @@
 members = [
     "windsor-kernel",
     "windsor-boot",
+    "build-tool",
 ]
 
-default-members = []
+default-members = [
+    "build-tool"
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "GPL-2.0-only"
 
 [profile.dev]
 panic = "abort"
