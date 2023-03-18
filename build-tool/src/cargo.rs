@@ -1,12 +1,15 @@
 use std::{process::Command, path::{Path, PathBuf}};
 
-pub fn build(dir: impl AsRef<Path>, args: &[&str]) -> Result<(), Box<dyn std::error::Error>> {
+pub fn build(dir: impl AsRef<Path>, args: &[&str], envs: &[(String, String)]) -> Result<(), Box<dyn std::error::Error>> {
     let mut build_args = vec!["build"];
     build_args.extend_from_slice(args);
+
+    let envs_ext: Vec<(String, String)> = envs.iter().cloned().collect();
 
     let build_status = Command::new("cargo")
         .current_dir(dir)
         .args(build_args)
+        .envs(envs_ext)
         .spawn()?
         .wait()?;
 

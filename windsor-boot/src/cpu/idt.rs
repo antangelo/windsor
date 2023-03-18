@@ -20,7 +20,6 @@ impl Descriptor {
     }
 }
 
-
 bitfield!(
     #[derive(Copy, Clone)]
 pub const struct Entry(pub u64): FromRaw {

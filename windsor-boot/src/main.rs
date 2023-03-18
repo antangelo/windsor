@@ -5,12 +5,13 @@
 #![feature(const_mut_refs)]
 #![feature(const_trait_impl)]
 #![feature(naked_functions)]
+#![feature(const_slice_from_raw_parts_mut)]
 
 mod cpu;
 mod i2c;
+mod kimg;
 mod pci;
 mod smbus;
-mod kimg;
 
 #[macro_use]
 extern crate alloc_no_stdlib as alloc;
@@ -18,13 +19,9 @@ extern crate alloc_no_stdlib as alloc;
 use core::panic::PanicInfo;
 use hex_literal::hex;
 use kimg::ImageDecompressor;
-use md5::{Md5, Digest};
+use md5::{Digest, Md5};
 
-const IMAGE_DATA: &'static [u8] = include_bytes!("../../windsor-kernel/windsor-dbg.bin.zst");
-const IMAGE_LOAD_ADDRESS: usize = 0x10_0000;
-const IMAGE_LOAD_SIZE: usize = include_bytes!("../../windsor-kernel/windsor-dbg.bin").len();
-const IMAGE_MD5: [u8; 16] = hex!("df2ac8ea035d20bc1154879aa329f474");
-const IMAGE_ENTRYPOINT: usize = 0x105430;
+static mut KIMAGE: kimg::KernelImage = build_macros::include_kernel!();
 
 #[no_mangle]
 pub extern "C" fn kenter() -> ! {
@@ -32,25 +29,24 @@ pub extern "C" fn kenter() -> ! {
     pci::initialize_devices();
     pci::initialize_agp();
 
-    let mut kimg = kimg::KernelImage {
-        data: IMAGE_DATA,
-        load_mem: unsafe { core::slice::from_raw_parts_mut(IMAGE_LOAD_ADDRESS as *mut u8, IMAGE_LOAD_SIZE) },
-        checksum: IMAGE_MD5,
-        entrypoint: IMAGE_ENTRYPOINT,
-    };
+    let mut kimg = unsafe { &mut KIMAGE };
 
-    kimg::Decompressor::decompress_image(&mut kimg);
+    {
+        kimg::Decompressor::decompress_image(&mut kimg);
+    }
 
-    let mut hasher = Md5::new();
-    hasher.update(kimg.load_mem);
-    let md5_sum = hasher.finalize();
+    {
+        let mut hasher = Md5::new();
+        hasher.update(unsafe { kimg.load_mem() });
+        let md5_sum = hasher.finalize();
 
-    if md5_sum != IMAGE_MD5.into() {
-        panic!("MD5 Mismatch");
+        if md5_sum != kimg.checksum.into() {
+            panic!("MD5 Mismatch");
+        }
     }
 
     unsafe {
-        core::arch::asm!("jmp eax", in("eax") IMAGE_ENTRYPOINT);
+        core::arch::asm!("jmp eax", in("eax") kimg.entrypoint);
     }
 
     loop {}

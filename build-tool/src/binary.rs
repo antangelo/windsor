@@ -1,10 +1,9 @@
 use std::path::Path;
 use object::{LittleEndian, read::elf::{FileHeader, ProgramHeader}};
 
-pub fn objcopy_bin(exe: &Path, output: &Path) -> Result<(), Box<dyn std::error::Error>> {
-    let obj: Vec<u8> = std::fs::read(exe)?;
-    let elf = object::elf::FileHeader32::<LittleEndian>::parse(obj.as_slice())?;
-    let segments = elf.program_headers(LittleEndian, obj.as_slice())?;
+pub fn objcopy(data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    let elf = object::elf::FileHeader32::<LittleEndian>::parse(data)?;
+    let segments = elf.program_headers(LittleEndian, data)?;
 
     let load_addr = segments.iter()
         .filter(|s| s.p_type(LittleEndian) & object::elf::PT_LOAD != 0)
@@ -43,14 +42,21 @@ pub fn objcopy_bin(exe: &Path, output: &Path) -> Result<(), Box<dyn std::error::
         let file_addr = paddr - load_addr;
         let size = segment.p_memsz(LittleEndian) as usize;
 
-        let data = segment.data(LittleEndian, obj.as_slice());
+        let data = segment.data(LittleEndian, data);
         if let Ok(data) = data {
             println!("[{:08x}] Writing segment of size {:08x}", paddr, data.len());
-            assert_eq!(data.len(), size);
+            //assert_eq!(data.len(), size);
             output_data[file_addr..(file_addr + data.len())].copy_from_slice(data);
         }
     }
 
+    Ok(output_data)
+}
+
+pub fn objcopy_bin(exe: &Path, output: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    let obj: Vec<u8> = std::fs::read(exe)?;
+
+    let output_data = objcopy(obj.as_slice())?;
     std::fs::write(output, output_data)?;
 
     Ok(())

@@ -32,3 +32,4 @@ md-5 = { version = "0.10.5", default-features = false }
 hex-literal = "0.3.4"
 alloc-no-stdlib = "2.0.4"
 zstd = { package = "ruzstd", git = "https://github.com/antangelo/zstd-rs.git", branch = "no_std", default-features = false, optional = true }
+build-macros = { path = "../build-macros" }

@@ -1,20 +1,25 @@
-use core::ops;
+use brotli::{BrotliDecompressStream, BrotliResult, BrotliState, HuffmanCode};
 use brotli_decompressor as brotli;
-use brotli::{BrotliState, BrotliDecompressStream, BrotliResult, HuffmanCode};
+use core::ops;
 
-use alloc::{Allocator, AllocatedStackMemory, StackAllocator, SliceWrapperMut, SliceWrapper, bzero};
+use alloc::{
+    bzero, AllocatedStackMemory, Allocator, SliceWrapper, SliceWrapperMut, StackAllocator,
+};
 
 const fn const_hc() -> HuffmanCode {
-    HuffmanCode {
-        value: 0,
-        bits: 0,
-    }
+    HuffmanCode { value: 0, bits: 0 }
 }
 
 declare_stack_allocator_struct!(GlobalAllocatedFreelist, 16, global);
 define_allocator_memory_pool!(16, u8, [0; 1024 * 1024], global, u8_pool);
 define_allocator_memory_pool!(16, u32, [0; 1024 * 1024], global, u32_pool);
-define_allocator_memory_pool!(16, brotli_decompressor::HuffmanCode, [super::const_hc(); 1024 * 1024], global, hc_pool);
+define_allocator_memory_pool!(
+    16,
+    brotli_decompressor::HuffmanCode,
+    [super::const_hc(); 1024 * 1024],
+    global,
+    hc_pool
+);
 
 pub struct BrotliDecompressor;
 
@@ -46,11 +51,11 @@ impl super::ImageDecompressor for BrotliDecompressor {
             &mut output_offset,
             img.load_mem,
             &mut written,
-            &mut brotli_state
-            );
+            &mut brotli_state,
+        );
 
         match result {
-            BrotliResult::ResultSuccess => {},
+            BrotliResult::ResultSuccess => {}
             _ => panic!("Decompression failed"),
         }
     }

@@ -4,6 +4,7 @@ members = [
     "windsor-kernel",
     "windsor-boot",
     "build-tool",
+    "build-macros",
 ]
 
 default-members = [
@@ -19,6 +20,12 @@ license = "GPL-2.0-only"
 panic = "abort"
 
 [profile.release]
+panic = "abort"
+lto = true
+debug = true
+
+[profile.opt-size]
+inherits = "release"
 panic = "abort"
 opt-level = "z"
 lto = true

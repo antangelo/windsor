@@ -1,16 +1,20 @@
-use core::{alloc::GlobalAlloc, ops};
 use core::cell::UnsafeCell;
+use core::{alloc::GlobalAlloc, ops};
 
-use alloc_no_stdlib::{Allocator, AllocatedStackMemory, StackAllocator, SliceWrapperMut, SliceWrapper, bzero};
+use alloc_no_stdlib::{
+    bzero, AllocatedStackMemory, Allocator, SliceWrapper, SliceWrapperMut, StackAllocator,
+};
 
-use zstd::{streaming_decoder::StreamingDecoder, io::Read};
+use zstd::{io::Read, streaming_decoder::StreamingDecoder};
 
 pub struct ZstdDecompressor;
 
 declare_stack_allocator_struct!(GlobalAllocatedFreelist, 16, global);
 define_allocator_memory_pool!(16, u8, [0; 1024 * 1024], global, u8_pool);
 
-struct MemAllocator(Option<UnsafeCell<StackAllocator<'static, u8, GlobalAllocatedFreelist<'static, u8>>>>);
+struct MemAllocator(
+    Option<UnsafeCell<StackAllocator<'static, u8, GlobalAllocatedFreelist<'static, u8>>>>,
+);
 
 unsafe impl Sync for MemAllocator {}
 
@@ -48,8 +52,9 @@ static mut ALLOCATOR: MemAllocator = MemAllocator(None);
 
 impl ZstdDecompressor {
     fn decompress_status(img: &mut super::KernelImage) -> Option<()> {
+        let mut load_mem = unsafe { img.load_mem() };
         let mut stream = StreamingDecoder::new(&mut img.data).ok()?;
-        Read::read_exact(&mut stream, img.load_mem).ok()?;
+        Read::read_exact(&mut stream, &mut load_mem).ok()?;
 
         Some(())
     }

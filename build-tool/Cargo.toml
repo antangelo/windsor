@@ -7,3 +7,11 @@ license.workspace = true
 [dependencies]
 colored = "2.0.0"
 object = "0.30.3"
+
+[lib]
+name = "build_tool_lib"
+path = "src/lib.rs"
+
+[[bin]]
+name = "build-tool"
+path = "src/main.rs"
