@@ -1,14 +1,20 @@
 [workspace] 
 
 members = [
-    "windsor-kernel",
-    "windsor-boot",
+#    "windsor-kernel",
+#    "windsor-boot",
     "build-tool",
     "build-macros",
 ]
 
 default-members = [
     "build-tool"
+]
+
+# Workaround until per-project targets work properly
+exclude = [
+    "windsor-kernel",
+    "windsor-boot",
 ]
 
 [workspace.package]

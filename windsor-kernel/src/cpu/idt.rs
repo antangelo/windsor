@@ -15,8 +15,12 @@ pub struct Descriptor {
 }
 
 impl Descriptor {
-    fn to_idtr(&self) -> u64 {
-        (self.size as u64) | ((self.offset as u64) << 16)
+    pub const fn new(size: u16, offset: u32) -> Self {
+        Self { size, offset, pad: 0 }
+    }
+
+    pub const fn zero() -> Self {
+        Self::new(0, 0)
     }
 }
 

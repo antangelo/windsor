@@ -16,7 +16,6 @@ RESET_VECTOR = 0xFFFFFFF0;
 SECTIONS {
     /DISCARD/ : {
         *(.comment)
-        *(.low_rom)
     }
 
     .text (RAM_CODE) : {

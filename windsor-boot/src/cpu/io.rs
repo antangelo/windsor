@@ -15,7 +15,3 @@ pub unsafe fn read_u8(port: u16) -> u8 {
     asm!("in al, dx", out("al") out, in("dx") port);
     out
 }
-
-pub unsafe fn write_u8(port: u16, val: u8) {
-    asm!("out dx, al", in("al") val, in("dx") port);
-}

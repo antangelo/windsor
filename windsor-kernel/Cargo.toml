@@ -1,10 +1,12 @@
 [package]
 name = "windsor-kernel"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
+#version.workspace = true
+#edition.workspace = true
+#license.workspace = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+version = "0.1.0"
+edition = "2021"
+license = "GPL-2.0-only"
 
 [[bin]]
 name = "windsor-kernel"
@@ -23,3 +25,18 @@ volatile-register = "0.2.1"
 autopad = "1.0.0"
 proc-bitfield = { version = "0.2.2", features = ["nightly"] }
 alloc-no-stdlib = "2.0.4"
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+lto = true
+debug = true
+
+[profile.opt-size]
+inherits = "release"
+panic = "abort"
+opt-level = "z"
+lto = true
+debug = true

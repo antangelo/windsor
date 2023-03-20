@@ -34,7 +34,7 @@ fn clear_screen(vm: &encoder::VideoModeInfo, argb: u32) {
 }
 
 #[no_mangle]
-pub extern "C" fn kenter() -> ! {
+pub extern "C" fn kmain() -> ! {
     unsafe {
         cpu::gdt::lgdt(&mut cpu::gdt::GDTR, cpu::gdt::GDT);
 

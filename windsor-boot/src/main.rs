@@ -1,12 +1,9 @@
 #![no_std]
 #![no_main]
-#![feature(pointer_byte_offsets)]
-#![feature(panic_info_message)]
 #![feature(const_mut_refs)]
 #![feature(const_trait_impl)]
 
 mod cpu;
-mod i2c;
 mod kimg;
 mod pci;
 mod smbus;
@@ -15,7 +12,6 @@ mod smbus;
 extern crate alloc_no_stdlib as alloc;
 
 use core::panic::PanicInfo;
-use hex_literal::hex;
 use kimg::ImageDecompressor;
 use md5::{Digest, Md5};
 
@@ -45,14 +41,11 @@ pub extern "C" fn kenter() -> ! {
 
     unsafe {
         core::arch::asm!("jmp eax", in("eax") kimg.entrypoint);
+        core::hint::unreachable_unchecked();
     }
-
-    loop {}
 }
 
 #[panic_handler]
-#[inline(never)]
 fn panic(_info: &PanicInfo) -> ! {
-    // FIXME: Reboot the system if we end up here
-    loop {}
+    smbus::reboot();
 }
