@@ -22,6 +22,9 @@ version = "0.1.0"
 edition = "2021"
 license = "GPL-2.0-only"
 
+[profile.dev.package.build-tool]
+[profile.release.package.build-tool]
+
 [profile.dev]
 panic = "abort"
 

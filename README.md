@@ -1,26 +1,53 @@
 # Windsor
 
-## Building
+## Directory Overview
 
-Windsor binaries require post-processing to be usable. Rust's build post-processing leaves quite a bit to be desired,
-so there are several methods that work.
+#### windsor-boot
 
-### With cargo-binutils
+First-stage bootloader, responsible for unpacking a zstd-compressed kernel,
+setting up its initial environment, and jumping to it.
+
+#### windsor-kernel
+
+The kernel itself.
+
+#### build-tool
+
+A build staging tool, as an alternative to Makefiles. Responsible for building
+individual components in the correct sequence and post-processing the generated
+ELF files.
+
+#### build-macros
+
+Includes a proc-macro for including the compressed kernel artifact inside windsor-boot,
+complete with information required to load it correctly. This has a dependency on build-tool.
+
+## Workspace Note
+
+Due to limitations with cargo workspaces and cargo-std-aware, the four projects above cannot
+be contained within the same workspace without some drawback. As such, only build-tool and build-macros share a workspace.
+
+windsor-boot and windsor-kernel are standalone projects, excluded by the workspace. If you are using
+rust-analyzer while editing code, you will have to open your editor within the sub-project directory
+(i.e. within `./windsor-boot` or `./windsor-kernel`) instead of the repo root (or otherwise configure
+rust-analyzer to use the sub-project directory over the workspace).
+
+## Dependencies
 
 ```sh
-$ cargo install cargo-binutils
-$ rustup component add llvm-tools-preview
-$ make
+$ rustup toolchain install nightly --component rust-src
 ```
 
-### With `llvm-objcopy`
+## Building
 
-Post-processing can also be applied manually with llvm-objcopy.
-
-Due to an LLVM bug, the size of the output ROM is off by one byte, so it needs to be extended manually.
+In the repo root, simply run the `build-tool`:
 
 ```sh
-$ cargo build --release
-$ llvm-objcopy -O binary ./target/i686-unknown-none/release/windsor windsor.bin
-$ truncate -s +1 windsor.bin
+$ cargo run
+```
+
+To clean, run:
+
+```sh
+$ cargo run clean
 ```
