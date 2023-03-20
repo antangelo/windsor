@@ -1,0 +1,40 @@
+[package]
+name = "windsor-boot"
+#version.workspace = true
+#edition.workspace = true
+#license.workspace = true
+
+version = "0.1.0"
+edition = "2021"
+license = "GPL-2.0-only"
+
+[[bin]]
+name = "windsor-boot"
+test = false
+bench = false
+
+[build-dependencies]
+cc = { version = "1.0", features = ["parallel"] }
+glob = "0.3"
+
+[dependencies]
+proc-bitfield = { version = "0.2.2", features = ["nightly"] }
+md-5 = { version = "0.10.5", default-features = false }
+alloc-no-stdlib = "2.0.4"
+zstd = { package = "ruzstd", git = "https://github.com/antangelo/zstd-rs.git", branch = "no_std", default-features = false }
+build-macros = { path = "../build-macros" }
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+lto = true
+debug = true
+
+[profile.opt-size]
+inherits = "release"
+panic = "abort"
+opt-level = "z"
+lto = true
+debug = true

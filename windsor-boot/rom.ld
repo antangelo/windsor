@@ -8,7 +8,7 @@ MEMORY {
     ram (rwx) : ORIGIN = 0, LENGTH = 64M
 }
 
-RAM_CODE = 0x00100000;
+RAM_CODE = 0x00400000;
 
 MCPX_BASE = 0xFFFFFE00;
 RESET_VECTOR = 0xFFFFFFF0;
@@ -20,21 +20,26 @@ SECTIONS {
 
     .low_rom (LOW_ROM) : {
         KEEP(*(.low_rom));
+        . = ALIGN(16);
     } > rom
 
-    .text (RAM_CODE) : {
+    .text (LOW_ROM + SIZEOF(.low_rom)) : {
         *(.text)
         *(.text.*)
         *(.eh_frame_hdr)
         *(.eh_frame)
         . = ALIGN(16);
-    } > ram AT>rom
+    } > rom
 
-    .data (RAM_CODE + SIZEOF(.text)) : {
-        *(.data)
-        *(.data.*)
+    .rodata (LOW_ROM + SIZEOF(.low_rom) + SIZEOF(.text)) : {
         *(.rodata)
         *(.rodata.*)
+        . = ALIGN(16);
+    } > rom
+
+    .data (RAM_CODE) : {
+        *(.data)
+        *(.data.*)
         . = ALIGN(16);
     } > ram AT>rom
 
@@ -61,12 +66,9 @@ SECTIONS {
         /*BYTE(0x0);*/
     } > rom
 
-    __start_code_ram = ADDR(.text);
-    __start_code_rom = LOADADDR(.text);
     __start_data_ram = ADDR(.data);
     __start_data_rom = LOADADDR(.data);
     __start_bss_ram = ADDR(.bss);
-    __code_size = SIZEOF(.text);
     __data_size = SIZEOF(.data);
     __bss_size = SIZEOF(.bss);
 }

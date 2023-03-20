@@ -1,0 +1,18 @@
+[package]
+name = "build-tool"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+colored = "2.0.0"
+#object = { version = "0.30.3", default-features = false, features = ["read", "elf"] }
+object = "0.30.3"
+
+[lib]
+name = "build_tool_lib"
+path = "src/lib.rs"
+
+[[bin]]
+name = "build-tool"
+path = "src/main.rs"

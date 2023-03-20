@@ -1,7 +1,8 @@
 use cc::Build;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("cargo:rerun-if-changed=linker.ld");
+    println!("cargo:rerun-if-changed=kernel.ld");
+    println!("cargo:rustc-link-arg=--script=kernel.ld");
 
     for ent in glob::glob("asm/**/*.s")? {
         let path = ent?;

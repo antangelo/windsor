@@ -34,10 +34,8 @@ fn clear_screen(vm: &encoder::VideoModeInfo, argb: u32) {
 }
 
 #[no_mangle]
-pub extern "C" fn kenter() -> ! {
+pub extern "C" fn kmain() -> ! {
     unsafe {
-        // Not necessary currently
-        // We also don't reload segments, so it may be a nop
         cpu::gdt::lgdt(&mut cpu::gdt::GDTR, cpu::gdt::GDT);
 
         cpu::irq::setup_irq();
