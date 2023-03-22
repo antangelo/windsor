@@ -7,11 +7,30 @@ use colored::Colorize;
 use std::path::Path;
 
 use std::string::{String, ToString};
+use std::boxed::Box;
 use std::vec;
 use std::vec::Vec;
 use std::println;
 
-fn build_boot(kernel_path: &String) -> Result<(), String> {
+fn rom_utilization(boot_image_sz: u32, kernel_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    let kernel_data = std::fs::read(kernel_path)?;
+    let (kernel_data, size) = binary::objcopy(&kernel_data, false)?;
+    let kernel_data = binary::compress_data(&kernel_data)?;
+    let kernel_size = kernel_data.len() as u32;
+
+    println!("Uncompressed kernel size: {}", size);
+    println!("Compressed kernel size: {}", kernel_size);
+    println!("Bootloader size: {}", boot_image_sz - kernel_size - 512);
+    println!("ROM Size (raw): {}", boot_image_sz);
+
+    let rom_size = (262144 - 512) as f32;
+    let rom_used = (boot_image_sz - 512) as f32;
+    println!("ROM Utilization: {}", rom_used / rom_size * 100.0);
+
+    Ok(())
+}
+
+fn build_boot(kernel_path: &String) -> Result<u32, String> {
     let boot_args = vec!["--profile=opt-size"];
     let boot_path = std::path::Path::new(config::BOOT_WORKSPACE_NAME);
 
@@ -44,15 +63,15 @@ fn build_boot(kernel_path: &String) -> Result<(), String> {
     let output_binary =
         cargo::target_output_file(&boot_args, config::TARGET, config::BOOT_WORKSPACE_NAME);
     let output_path = Path::new(config::OUTPUT_BINARY);
-    binary::objcopy_bin(&output_binary, &output_path).map_err(|e| e.to_string())?;
+    let len = binary::objcopy_bin(&output_binary, &output_path).map_err(|e| e.to_string())?;
     binary::pad_binary(&output_path, 262144).map_err(|e| e.to_string())?;
 
-    Ok(())
+    Ok(len)
 }
 
 fn build_kernel() -> Result<String, String> {
     let krnl_path = std::path::Path::new(config::KRNL_WORKSPACE_NAME);
-    let krnl_args: Vec<&str> = vec![];
+    let krnl_args: Vec<&str> = vec!["--release"];
     let krnl_envs: Vec<(String, String)> = std::env::vars().collect();
 
     println!(
@@ -77,7 +96,8 @@ fn build_kernel() -> Result<String, String> {
 
 fn build() -> Result<(), String> {
     let kernel_elf_file = build_kernel()?;
-    build_boot(&kernel_elf_file)?;
+    let image_size = build_boot(&kernel_elf_file)?;
+    rom_utilization(image_size, Path::new(&kernel_elf_file)).map_err(|e| e.to_string())?;
     Ok(())
 }
 

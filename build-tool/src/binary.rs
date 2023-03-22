@@ -3,6 +3,7 @@ use object::{
     LittleEndian,
 };
 use std::{
+    io::Write,
     path::Path,
     vec::Vec,
     vec,
@@ -10,7 +11,7 @@ use std::{
     println,
 };
 
-pub fn objcopy(data: &[u8], verbose: bool) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+pub fn objcopy(data: &[u8], verbose: bool) -> Result<(Vec<u8>, u32), Box<dyn std::error::Error>> {
     let elf = object::elf::FileHeader32::<LittleEndian>::parse(data)?;
     let segments = elf.program_headers(LittleEndian, data)?;
 
@@ -35,6 +36,8 @@ pub fn objcopy(data: &[u8], verbose: bool) -> Result<Vec<u8>, Box<dyn std::error
         println!("Image size: {:08x}", limit - load_addr);
         println!("Writing sections");
     }
+
+    let mut bin_size = 0;
 
     let mut output_data = vec![0u8; limit - load_addr];
     for segment in segments {
@@ -70,19 +73,20 @@ pub fn objcopy(data: &[u8], verbose: bool) -> Result<Vec<u8>, Box<dyn std::error
                 println!("Warning! Data length is not the same as memory length!");
             }
             output_data[file_addr..(file_addr + data.len())].copy_from_slice(data);
+            bin_size += data.len() as u32;
         }
     }
 
-    Ok(output_data)
+    Ok((output_data, bin_size))
 }
 
-pub fn objcopy_bin(exe: &Path, output: &Path) -> Result<(), Box<dyn std::error::Error>> {
+pub fn objcopy_bin(exe: &Path, output: &Path) -> Result<u32, Box<dyn std::error::Error>> {
     let obj: Vec<u8> = std::fs::read(exe)?;
 
-    let output_data = objcopy(obj.as_slice(), true)?;
+    let (output_data, size) = objcopy(obj.as_slice(), true)?;
     std::fs::write(output, output_data)?;
 
-    Ok(())
+    Ok(size)
 }
 
 pub fn pad_binary(binary: &Path, desired_size: usize) -> Result<(), Box<dyn std::error::Error>> {
@@ -94,4 +98,13 @@ pub fn pad_binary(binary: &Path, desired_size: usize) -> Result<(), Box<dyn std:
     let desired_size: u64 = desired_size.try_into()?;
     file.set_len(desired_size)?;
     Ok(())
+}
+
+pub fn compress_data(input: &Vec<u8>) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    let mut zstd_data = vec![];
+    let mut zstd_enc = zstd::stream::Encoder::new(&mut zstd_data, 3)?;
+    zstd_enc.write_all(input.as_slice())?;
+    zstd_enc.finish()?;
+
+    Ok(zstd_data)
 }

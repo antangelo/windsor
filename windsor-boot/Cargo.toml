@@ -19,10 +19,14 @@ glob = "0.3"
 
 [dependencies]
 proc-bitfield = { version = "0.2.2", features = ["nightly"] }
-md-5 = { version = "0.10.5", default-features = false }
+md-5 = { version = "0.10.5", default-features = false, optional = true }
 alloc-no-stdlib = "2.0.4"
 zstd = { package = "ruzstd", git = "https://github.com/antangelo/zstd-rs.git", branch = "no_std", default-features = false }
 build-macros = { path = "../build-macros" }
+
+[features]
+default = []
+checksum = ["md-5"]
 
 [profile.dev]
 panic = "abort"
@@ -38,3 +42,4 @@ panic = "abort"
 opt-level = "z"
 lto = true
 debug = true
+codegen-units = 1

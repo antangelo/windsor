@@ -13,6 +13,8 @@ extern crate alloc_no_stdlib as alloc;
 
 use core::panic::PanicInfo;
 use kimg::ImageDecompressor;
+
+#[cfg(feature = "checksum")]
 use md5::{Digest, Md5};
 
 static mut KIMAGE: kimg::KernelImage = build_macros::include_kernel!();
@@ -29,6 +31,7 @@ pub extern "C" fn kenter() -> ! {
         kimg::Decompressor::decompress_image(&mut kimg);
     }
 
+    #[cfg(feature = "checksum")]
     {
         let mut hasher = Md5::new();
         hasher.update(unsafe { kimg.load_mem() });

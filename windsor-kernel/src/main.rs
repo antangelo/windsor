@@ -58,6 +58,8 @@ pub extern "C" fn kmain() -> ! {
     printer.print_string_bytes(print::COLOR_WHITE, "windsor ".as_bytes());
     printer.print_string_bytes(print::COLOR_WHITE, env!("CARGO_PKG_VERSION").as_bytes());
 
+    cpu::sti();
+
     loop {
         if gpu.pmc.intr.read() != 0 {
             unsafe { gpu.pcrtc.intr.write(0x1) };
