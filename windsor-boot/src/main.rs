@@ -5,7 +5,6 @@
 
 mod cpu;
 mod kimg;
-mod pci;
 mod smbus;
 
 #[macro_use]
@@ -22,8 +21,7 @@ static mut KIMAGE: kimg::KernelImage = build_macros::include_kernel!();
 #[no_mangle]
 pub extern "C" fn kenter() -> ! {
     cpu::gdt::load_gdt();
-    pci::initialize_devices();
-    pci::initialize_agp();
+    cpu::mmu::initialize();
 
     let mut kimg = unsafe { &mut KIMAGE };
 

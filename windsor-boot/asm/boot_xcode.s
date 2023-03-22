@@ -351,7 +351,7 @@ mcpx_enter:
 
     rep stosw
 
-    mov esp, offset 0x90000
+    mov esp, offset 0x490000
     mov ebp, esp
 
     // Done with ROM code, start the kernel

@@ -1,3 +1,5 @@
+#![feature(track_path)]
+
 extern crate proc_macro;
 use build_tool_lib::{binary, cargo, config};
 use md5::{Digest, Md5};
@@ -15,7 +17,9 @@ fn kernel_path() -> PathBuf {
 
 #[proc_macro]
 pub fn include_kernel(_item: TokenStream) -> TokenStream {
-    let kernel_elf = std::fs::read(kernel_path()).unwrap();
+    let kernel_path = kernel_path();
+    proc_macro::tracked_path::path(kernel_path.to_string_lossy());
+    let kernel_elf = std::fs::read(kernel_path).unwrap();
 
     let kernel_obj = object::read::File::parse(kernel_elf.as_slice()).unwrap();
     let (kernel_data, _) = binary::objcopy(kernel_elf.as_slice(), false).unwrap();

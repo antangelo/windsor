@@ -3,15 +3,13 @@ ENTRY(kenter)
 ROM_SIZE = 256K;
 LOW_ROM = 0xFFFC0000;
 
+RAM_CODE = 0x80010000;
+
 MEMORY {
     rom (rx) : ORIGIN = LOW_ROM, LENGTH = ROM_SIZE
-    ram (rwx) : ORIGIN = 0, LENGTH = 64M
+    notram (rwx) : ORIGIN = 4M, LENGTH = 64M
+    ram(rwx) : ORIGIN = RAM_CODE, LENGTH = 4M
 }
-
-RAM_CODE = 0x00100000;
-
-MCPX_BASE = 0xFFFFFE00;
-RESET_VECTOR = 0xFFFFFFF0;
 
 SECTIONS {
     /DISCARD/ : {

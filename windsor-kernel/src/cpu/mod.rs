@@ -2,6 +2,7 @@ pub mod gdt;
 pub mod idt;
 pub mod io;
 pub mod irq;
+pub mod mmu;
 
 use core::arch::asm;
 

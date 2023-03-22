@@ -12,7 +12,7 @@ kenter:
     rep stosw
 
     // Start kernel
-    mov esp, offset 0x90000
+    mov esp, offset 0x490000
     mov ebp, esp
     jmp kmain
 
