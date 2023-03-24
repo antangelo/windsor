@@ -1,3 +1,4 @@
+#![feature(proc_macro_tracked_env)]
 #![feature(track_path)]
 
 extern crate proc_macro;
@@ -8,7 +9,7 @@ use proc_macro::TokenStream;
 use std::path::PathBuf;
 
 fn kernel_path() -> PathBuf {
-    if let Ok(path) = std::env::var(config::KERNEL_ELF_PATH_ENV) {
+    if let Ok(path) = proc_macro::tracked_env::var(config::KERNEL_ELF_PATH_ENV) {
         return PathBuf::from(path);
     }
 
