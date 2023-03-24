@@ -30,8 +30,10 @@ fn rom_utilization(boot_image_sz: u32, kernel_path: &Path) -> Result<(), Box<dyn
     Ok(())
 }
 
-fn build_boot(kernel_path: &String) -> Result<u32, String> {
-    let boot_args = vec!["--profile=opt-size"];
+fn build_boot(bargs: &Vec<String>, kernel_path: &String) -> Result<u32, String> {
+    let mut boot_args = vec!["--profile=opt-size"];
+    boot_args.extend(bargs.iter().map(|s| s.as_str()).filter(|s| *s != "--release"));
+
     let boot_path = std::path::Path::new(config::BOOT_WORKSPACE_NAME);
 
     let mut boot_envs: Vec<(String, String)> = std::env::vars().collect();
@@ -69,9 +71,9 @@ fn build_boot(kernel_path: &String) -> Result<u32, String> {
     Ok(len)
 }
 
-fn build_kernel() -> Result<String, String> {
+fn build_kernel(kargs: &Vec<String>) -> Result<String, String> {
     let krnl_path = std::path::Path::new(config::KRNL_WORKSPACE_NAME);
-    let krnl_args: Vec<&str> = vec!["--release"];
+    let krnl_args: Vec<&str> = kargs.iter().map(|s| s.as_str()).collect();
     let krnl_envs: Vec<(String, String)> = std::env::vars().collect();
 
     println!(
@@ -94,9 +96,9 @@ fn build_kernel() -> Result<String, String> {
         .ok_or(String::from("Failed to get kernel target output path"))
 }
 
-fn build() -> Result<(), String> {
-    let kernel_elf_file = build_kernel()?;
-    let image_size = build_boot(&kernel_elf_file)?;
+fn build(kargs: &Vec<String>, bargs: &Vec<String>) -> Result<(), String> {
+    let kernel_elf_file = build_kernel(&kargs)?;
+    let image_size = build_boot(&bargs, &kernel_elf_file)?;
     rom_utilization(image_size, Path::new(&kernel_elf_file)).map_err(|e| e.to_string())?;
     Ok(())
 }
@@ -108,16 +110,49 @@ fn clean() -> Result<(), String> {
     Ok(())
 }
 
+fn parse_args(args: &Vec<String>) -> Result<(Vec<String>, Vec<String>), String> {
+    let mut kernel_args: Vec<String> = vec![];
+    let mut boot_args: Vec<String> = vec![];
+
+    if args.len() >= 2 {
+        let mut for_boot = false;
+
+        for i in 1..args.len() {
+            let arg = &args[i];
+            if i == 1 && !arg.starts_with("-") {
+                continue;
+            }
+
+            let into = if for_boot {
+                for_boot = false;
+                &mut boot_args
+            } else {
+                &mut kernel_args
+            };
+
+            match arg.as_str() {
+                "-B" => for_boot = true,
+                "--release" => into.push(arg.clone()),
+                a => return Err(std::format!("Unknown argument {}", a)),
+            }
+        }
+    }
+
+    Ok((kernel_args, boot_args))
+}
+
 fn main() -> Result<(), String> {
     let args: Vec<String> = std::env::args().collect();
 
+    let (kernel_args, boot_args) = parse_args(&args)?;
+
     if args.len() <= 1 {
-        return build();
+        return build(&kernel_args, &boot_args);
     }
 
     if args[1] == "clean" {
         return clean();
     }
 
-    build()
+    build(&kernel_args, &boot_args)
 }
