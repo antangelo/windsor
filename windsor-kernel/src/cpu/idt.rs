@@ -16,7 +16,11 @@ pub struct Descriptor {
 
 impl Descriptor {
     pub const fn new(size: u16, offset: u32) -> Self {
-        Self { size, offset, pad: 0 }
+        Self {
+            size,
+            offset,
+            pad: 0,
+        }
     }
 
     pub const fn zero() -> Self {

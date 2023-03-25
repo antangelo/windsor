@@ -4,6 +4,9 @@
 #![feature(panic_info_message)]
 #![feature(const_mut_refs)]
 #![feature(const_trait_impl)]
+#![feature(abi_x86_interrupt)]
+#![feature(ptr_mask)]
+#![feature(int_roundings)]
 
 mod cpu;
 mod encoder;
@@ -11,8 +14,28 @@ mod font;
 mod i2c;
 mod nv2a;
 mod pci;
+mod physram;
 mod print;
 mod smbus;
+
+extern "C" {
+    static mut __start_code_ram: u32;
+    static mut __kernel_stack: u32;
+}
+
+macro_rules! linker_var {
+    ($id:ident) => {
+        &$id as *const u32 as u32
+    };
+}
+
+pub fn kernel_region() -> &'static [u8] {
+    unsafe {
+        let load_addr = linker_var!(__start_code_ram);
+        let size = linker_var!(__kernel_stack) - load_addr;
+        core::slice::from_raw_parts(load_addr as *const u8, size as usize)
+    }
+}
 
 use core::panic::PanicInfo;
 
@@ -37,9 +60,10 @@ fn clear_screen(vm: &encoder::VideoModeInfo, argb: u32) {
 pub extern "C" fn kmain() -> ! {
     unsafe {
         cpu::gdt::lgdt(&mut cpu::gdt::GDTR, cpu::gdt::GDT);
-
         cpu::irq::setup_irq();
-        cpu::idt::lidt(&cpu::irq::IDTR);
+
+        let mut pmm = physram::BitmapAlloc::new();
+        let _mmu = cpu::mmu::Mapping::from_bootstrap(&mut pmm);
     }
 
     pci::initialize_devices();
@@ -58,7 +82,7 @@ pub extern "C" fn kmain() -> ! {
     printer.print_string_bytes(print::COLOR_WHITE, "windsor ".as_bytes());
     printer.print_string_bytes(print::COLOR_WHITE, env!("CARGO_PKG_VERSION").as_bytes());
 
-    //cpu::sti();
+    cpu::sti();
 
     loop {
         if gpu.pmc.intr.read() != 0 {

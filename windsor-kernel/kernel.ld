@@ -37,6 +37,7 @@ SECTIONS {
         *(.bss.*)
         *(.sbss)
         *(COMMON)
+        . = ALIGN(4096);
     } > ram
 
     __start_code_ram = ADDR(.text);
@@ -47,4 +48,5 @@ SECTIONS {
     __code_size = SIZEOF(.text);
     __data_size = SIZEOF(.data);
     __bss_size = SIZEOF(.bss);
+    __kernel_stack = ADDR(.bss) + SIZEOF(.bss) + 8192;
 }

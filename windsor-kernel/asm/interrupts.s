@@ -12,30 +12,6 @@ kenter:
     rep stosw
 
     // Start kernel
-    mov esp, offset 0x490000
+    mov esp, offset __kernel_stack
     mov ebp, esp
     jmp kmain
-
-.macro make_irq ent
-    cli
-    pusha
-    pushf
-
-    call irq_\ent
-    mov al, 0x20
-    outb 0x20, al
-
-    popf
-    popa
-    iret
-.endm
-
-.global irq_entry_0
-.global irq_0
-irq_entry_0:
-    make_irq 0
-
-.global irq_entry_8
-.global irq_8
-irq_entry_8:
-    make_irq 8
