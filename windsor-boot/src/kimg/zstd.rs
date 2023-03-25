@@ -5,7 +5,9 @@ use alloc_no_stdlib::{
     bzero, AllocatedStackMemory, Allocator, SliceWrapper, SliceWrapperMut, StackAllocator,
 };
 
-use zstd::{io::Read, streaming_decoder::StreamingDecoder};
+use zstd::FrameDecoder;
+use zstd::frame_decoder::{FrameDecoderError, BlockDecodingStrategy};
+use zstd::io::{Read, Error, ErrorKind};
 
 pub struct ZstdDecompressor;
 
@@ -50,10 +52,50 @@ impl MemAllocator {
 #[global_allocator]
 static mut ALLOCATOR: MemAllocator = MemAllocator(None);
 
+struct ZstdDecoder<R: Read> {
+    decoder: FrameDecoder,
+    source: R,
+}
+
+impl<R: Read> ZstdDecoder<R> {
+    fn new(mut source: R) -> Result<Self, FrameDecoderError> {
+        let mut decoder = FrameDecoder::new();
+        decoder.init(&mut source)?;
+        Ok(Self { decoder, source })
+    }
+}
+
+// This is copied from StreamingDecoder, but does not format an error
+// message to save on space
+impl<R: Read> Read for ZstdDecoder<R> {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, Error> {
+        if self.decoder.is_finished() && self.decoder.can_collect() == 0 {
+            return Ok(0);
+        }
+
+        while self.decoder.can_collect() < buf.len() && !self.decoder.is_finished() {
+            //More bytes can be decoded
+            let additional_bytes_needed = buf.len() - self.decoder.can_collect();
+            match self.decoder.decode_blocks(
+                &mut self.source,
+                BlockDecodingStrategy::UptoBytes(additional_bytes_needed),
+                ) {
+                Ok(_) => { /*Nothing to do*/ }
+                Err(_) => {
+                    let err = Error::from(ErrorKind::Other);
+                    return Err(err);
+                }
+            }
+        }
+
+        self.decoder.read(buf)
+    }
+}
+
 impl ZstdDecompressor {
     fn decompress_status(img: &mut super::KernelImage) -> Option<()> {
         let mut load_mem = unsafe { img.load_mem() };
-        let mut stream = StreamingDecoder::new(&mut img.data).ok()?;
+        let mut stream = ZstdDecoder::new(&mut img.data).ok()?;
         Read::read_exact(&mut stream, &mut load_mem).ok()?;
 
         Some(())

@@ -24,10 +24,7 @@ pub extern "C" fn kenter() -> ! {
     cpu::mmu::initialize();
 
     let mut kimg = unsafe { &mut KIMAGE };
-
-    {
-        kimg::Decompressor::decompress_image(&mut kimg);
-    }
+    kimg::Decompressor::decompress_image(&mut kimg);
 
     #[cfg(feature = "checksum")]
     {
