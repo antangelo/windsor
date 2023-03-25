@@ -13,7 +13,8 @@ fn kernel_path() -> PathBuf {
         return PathBuf::from(path);
     }
 
-    cargo::target_output_file(&[], config::TARGET, config::KRNL_WORKSPACE_NAME)
+    let kernel_output = cargo::target_output_file(&[], config::TARGET, config::KRNL_WORKSPACE_NAME);
+    PathBuf::from("..").join(kernel_output).canonicalize().unwrap()
 }
 
 #[proc_macro]
