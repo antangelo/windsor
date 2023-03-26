@@ -1,9 +1,7 @@
 .intel_syntax noprefix
-.global mcpx_enter
 
-.section .low_rom, "ax"
+.section .rom_meta, "ax"
 
-.org 0x0
 /* MCPX Magic Values - clock timings*/
 
 .long 0xff000009
@@ -328,31 +326,3 @@ xc_pci_out 0x80010010, 0xfd000000
 xc_poke 0x0, 0xfc1000b8
 xc_poke 0x4, 0x90e0ffff
 xc_end 0x806
-
-.org 0x1000
-
-mcpx_enter:
-
-    // Copy rwdata into RAM
-    mov edi, offset __start_data_ram
-    mov esi, offset __start_data_rom
-
-    mov ecx, offset __data_size
-    shr ecx, 2
-
-    rep movsd
-
-    // Zero BSS
-    xor eax, eax
-    mov edi, offset __start_bss_ram
-
-    mov ecx, offset __bss_size
-    shr ecx, 2
-
-    rep stosw
-
-    mov esp, offset 0x490000
-    mov ebp, esp
-
-    // Done with ROM code, start the kernel
-    jmp kenter

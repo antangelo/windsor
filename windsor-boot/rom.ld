@@ -18,12 +18,15 @@ SECTIONS {
         *(.comment)
     }
 
-    .low_rom (LOW_ROM) : {
-        KEEP(*(.low_rom));
-        . = ALIGN(16);
+    .rom_meta (LOW_ROM) : {
+        KEEP(*(.rom_meta));
     } > rom
 
-    .text (LOW_ROM + SIZEOF(.low_rom)) : {
+    .low_rom (LOW_ROM + 0x1000) : {
+        KEEP(*(.low_rom));
+    } > rom
+
+    .text (ADDR(.low_rom) + SIZEOF(.low_rom)) : {
         *(.text)
         *(.text.*)
         *(.eh_frame_hdr)
@@ -31,7 +34,7 @@ SECTIONS {
         . = ALIGN(16);
     } > rom
 
-    .rodata (LOW_ROM + SIZEOF(.low_rom) + SIZEOF(.text)) : {
+    .rodata (ADDR(.text) + SIZEOF(.text)) : {
         *(.rodata)
         *(.rodata.*)
         . = ALIGN(16);

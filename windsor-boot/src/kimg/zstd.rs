@@ -5,9 +5,9 @@ use alloc_no_stdlib::{
     bzero, AllocatedStackMemory, Allocator, SliceWrapper, SliceWrapperMut, StackAllocator,
 };
 
+use zstd::frame_decoder::{BlockDecodingStrategy, FrameDecoderError};
+use zstd::io::{Error, ErrorKind, Read};
 use zstd::FrameDecoder;
-use zstd::frame_decoder::{FrameDecoderError, BlockDecodingStrategy};
-use zstd::io::{Read, Error, ErrorKind};
 
 pub struct ZstdDecompressor;
 
@@ -79,7 +79,7 @@ impl<R: Read> Read for ZstdDecoder<R> {
             match self.decoder.decode_blocks(
                 &mut self.source,
                 BlockDecodingStrategy::UptoBytes(additional_bytes_needed),
-                ) {
+            ) {
                 Ok(_) => { /*Nothing to do*/ }
                 Err(_) => {
                     let err = Error::from(ErrorKind::Other);

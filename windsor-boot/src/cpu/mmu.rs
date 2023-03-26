@@ -12,26 +12,25 @@ pub const fn new_pde(paddr: u32) -> u32 {
 }
 
 pub unsafe fn set_cr3(pde_addr: *const u32) {
-    let cr3 = ((pde_addr as u32) & 0xffff_f000) |
-        (1 << 4) | (1 << 3); // PCD, PWT
+    let cr3 = ((pde_addr as u32) & 0xffff_f000) | (1 << 4) | (1 << 3); // PCD, PWT
 
     asm!("mov cr3, eax", in("eax") cr3);
 }
 
 pub unsafe fn enable() {
     asm!(
-        // Enable 4MB pages
-        "mov eax, cr4",
-        "or eax, 0x10",
-        "mov cr4, eax",
+    // Enable 4MB pages
+    "mov eax, cr4",
+    "or eax, 0x10",
+    "mov cr4, eax",
 
-        // Enable PG and WP
-        "mov eax, cr0",
-        "or eax, 0x80010000",
-        "mov cr0, eax",
+    // Enable PG and WP
+    "mov eax, cr0",
+    "or eax, 0x80010000",
+    "mov cr0, eax",
 
-        out("eax") _
-        );
+    out("eax") _
+    );
 }
 
 /// We want to set up a bootstrap virtual memory environment
@@ -61,7 +60,8 @@ pub fn initialize() {
         let mut curr_paddr: u32 = 0xF000_0000;
         while curr_paddr >= 0xF000_0000 {
             let pde_idx = curr_paddr / (page_size as u32);
-            pde.add(pde_idx as usize).write_volatile(new_pde(curr_paddr));
+            pde.add(pde_idx as usize)
+                .write_volatile(new_pde(curr_paddr));
             curr_paddr = curr_paddr.wrapping_add(page_size as u32);
         }
 

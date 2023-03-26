@@ -57,17 +57,23 @@ impl GDTSegment {
 #[repr(packed)]
 pub struct GDTDesc {
     size: u16,
-    offset: u32,
+    offset: *const GDTSegment,
     pad: u16,
 }
 
-pub static mut GDTR: GDTDesc = GDTDesc {
+unsafe impl Sync for GDTDesc {}
+
+#[no_mangle]
+#[link_section = ".hi_rom"]
+pub static GDTR: GDTDesc = GDTDesc {
     size: 5 * 64 - 1,
-    offset: 0,
-    pad: 0,
+    offset: GDT.as_ptr(),
+    pad: 0xffff,
 };
 
-pub const GDT: &'static [GDTSegment; 5] = &[
+#[no_mangle]
+#[link_section = ".hi_rom"]
+pub static GDT: [GDTSegment; 5] = [
     GDTSegment::null(),
     GDTSegment::flat(true, false),
     GDTSegment::flat(true, true),
@@ -81,12 +87,11 @@ extern "C" {
 
 pub fn load_gdt() {
     unsafe {
-        lgdt(&mut GDTR, GDT);
+        lgdt(&GDTR);
         reload_segments();
     }
 }
 
-pub unsafe fn lgdt(gdtr: &'static mut GDTDesc, gdt: &'static [GDTSegment; 5]) {
-    gdtr.offset = gdt.as_ptr() as u32;
+pub unsafe fn lgdt(gdtr: &'static GDTDesc) {
     asm!("lgdt [eax]", in("eax") gdtr);
 }

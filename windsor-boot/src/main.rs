@@ -6,6 +6,7 @@
 mod cpu;
 mod kimg;
 mod smbus;
+mod xcode;
 
 #[macro_use]
 extern crate alloc_no_stdlib as alloc;
