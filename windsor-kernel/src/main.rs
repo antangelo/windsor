@@ -18,6 +18,8 @@ mod physram;
 mod print;
 mod smbus;
 
+use core::panic::PanicInfo;
+
 extern "C" {
     static mut __start_code_ram: u32;
     static mut __kernel_stack: u32;
@@ -37,23 +39,14 @@ pub fn kernel_region() -> &'static [u8] {
     }
 }
 
-use core::panic::PanicInfo;
-
 const FB_SIZE: u32 = 0x40_0000;
 const FB_START: u32 = 0xf000_0000 | (64 * 1024 * 1024 - FB_SIZE);
 
 fn clear_screen(vm: &encoder::VideoModeInfo, argb: u32) {
-    let addr = FB_START;
-
-    for y in 0..vm.height {
-        let addr = addr + 4 * vm.width * y;
-        for n in 0..vm.width {
-            let addr = addr + 4 * n;
-            unsafe {
-                *(addr as *mut u32) = argb;
-            }
-        }
-    }
+    let fb = unsafe {
+        core::slice::from_raw_parts_mut(FB_START as *mut u32, (vm.height * vm.width) as usize)
+    };
+    fb.fill(argb);
 }
 
 #[no_mangle]
