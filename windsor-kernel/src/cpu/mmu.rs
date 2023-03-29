@@ -418,7 +418,11 @@ impl Mapping {
             invalidate_all();
         }
 
-        // FIXME: Unmap identity mapped RAM
+        // FIXME: Account for 128MB
+        let identity_mapped_pages = 64 / 4;
+        for i in 1..identity_mapped_pages {
+            mapping.pd[i].set_entry(0);
+        }
 
         mapping
     }
