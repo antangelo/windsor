@@ -2,14 +2,7 @@ use object::{
     read::elf::{FileHeader, ProgramHeader},
     LittleEndian,
 };
-use std::{
-    io::Write,
-    path::Path,
-    vec::Vec,
-    vec,
-    boxed::Box,
-    println,
-};
+use std::{boxed::Box, io::Write, path::Path, println, vec, vec::Vec};
 
 pub fn objcopy(data: &[u8], verbose: bool) -> Result<(Vec<u8>, u32), Box<dyn std::error::Error>> {
     let elf = object::elf::FileHeader32::<LittleEndian>::parse(data)?;

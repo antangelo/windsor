@@ -6,13 +6,16 @@ use build_tool_lib::{binary, cargo, config};
 use colored::Colorize;
 use std::path::Path;
 
-use std::string::{String, ToString};
 use std::boxed::Box;
+use std::println;
+use std::string::{String, ToString};
 use std::vec;
 use std::vec::Vec;
-use std::println;
 
-fn rom_utilization(boot_image_sz: u32, kernel_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+fn rom_utilization(
+    boot_image_sz: u32,
+    kernel_path: &Path,
+) -> Result<(), Box<dyn std::error::Error>> {
     let kernel_data = std::fs::read(kernel_path)?;
     let (kernel_data, size) = binary::objcopy(&kernel_data, false)?;
     let kernel_data = binary::compress_data(&kernel_data)?;
@@ -32,7 +35,12 @@ fn rom_utilization(boot_image_sz: u32, kernel_path: &Path) -> Result<(), Box<dyn
 
 fn build_boot(bargs: &Vec<String>, kernel_path: &String) -> Result<u32, String> {
     let mut boot_args = vec!["--profile=opt-size"];
-    boot_args.extend(bargs.iter().map(|s| s.as_str()).filter(|s| *s != "--release"));
+    boot_args.extend(
+        bargs
+            .iter()
+            .map(|s| s.as_str())
+            .filter(|s| *s != "--release"),
+    );
 
     let boot_path = std::path::Path::new(config::BOOT_WORKSPACE_NAME);
 

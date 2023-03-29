@@ -1,11 +1,11 @@
 use std::{
+    boxed::Box,
+    format,
     path::{Path, PathBuf},
     process::Command,
     string::String,
-    boxed::Box,
-    vec::Vec,
     vec,
-    format,
+    vec::Vec,
 };
 
 pub fn build(
@@ -53,7 +53,10 @@ pub fn target_output_file(build_args: &[&str], target_str: &str, crate_name: &st
 
     let profile = profile.unwrap_or("debug");
 
-    let path = format!("{}/target/{}/{}/{}", crate_name, target_str, profile, crate_name);
+    let path = format!(
+        "{}/target/{}/{}/{}",
+        crate_name, target_str, profile, crate_name
+    );
     PathBuf::from(path)
 }
 
