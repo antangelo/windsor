@@ -90,3 +90,7 @@ start16:
 reset_vector:
     cli
     jmp start16
+
+// In case any assembly files are loaded after this one in the module,
+// this setting will persist
+.code32

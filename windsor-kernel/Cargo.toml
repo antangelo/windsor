@@ -13,10 +13,6 @@ name = "windsor-kernel"
 test = false
 bench = false
 
-[build-dependencies]
-cc = { version = "1.0", features = ["parallel"] }
-glob = "0.3"
-
 [dependencies]
 num = { version = "0.4", default-features = false }
 num-traits = { version = "0.2", default-features = false }

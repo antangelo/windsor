@@ -7,6 +7,7 @@
 #![feature(abi_x86_interrupt)]
 #![feature(ptr_mask)]
 #![feature(int_roundings)]
+#![feature(naked_functions)]
 
 mod cpu;
 mod encoder;
@@ -19,6 +20,24 @@ mod print;
 mod smbus;
 
 use core::panic::PanicInfo;
+
+#[no_mangle]
+#[naked]
+pub unsafe extern "C" fn kenter() {
+    core::arch::asm!(
+        // Zero BSS
+        "xor %eax, %eax",
+        "mov $__start_bss_ram, %edi",
+        "mov $__bss_size, %ecx",
+        "shr $2, %ecx",
+        "rep stosl",
+        // Start kernel
+        "mov $__kernel_stack, %esp",
+        "mov %esp, %ebp",
+        "jmp kmain",
+        options(att_syntax, noreturn),
+    );
+}
 
 extern "C" {
     static mut __start_code_ram: u32;
