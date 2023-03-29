@@ -1,4 +1,3 @@
-.intel_syntax noprefix
 .global boot_startup
 .global mcpx_enter
 
@@ -9,25 +8,25 @@ mcpx_enter:
 
 boot_startup:
     // Copy rwdata into RAM
-    mov edi, offset __start_data_ram
-    mov esi, offset __start_data_rom
+    mov $__start_data_ram, %edi
+    mov $__start_data_rom, %esi
 
-    mov ecx, offset __data_size
-    shr ecx, 2
+    mov $__data_size, %ecx
+    shr $2, %ecx
 
-    rep movsd
+    rep movsl
 
     // Zero BSS
-    xor eax, eax
-    mov edi, offset __start_bss_ram
+    xor %eax, %eax
+    mov $__start_bss_ram, %edi
 
-    mov ecx, offset __bss_size
-    shr ecx, 2
+    mov $__bss_size, %ecx
+    shr $2, %ecx
 
-    rep stosw
+    rep stosl
 
-    mov esp, offset 0x490000
-    mov ebp, esp
+    mov $0x490000, %esp
+    mov %esp, %ebp
 
     // Done with ROM code, start the kernel
     jmp kenter
@@ -37,53 +36,52 @@ boot_startup:
 .code32
 
 start32:
-    mov eax, offset 0x10
-    mov ds, eax
-    mov es, eax
-    mov ss, eax
-    mov fs, eax
-    mov gs, eax
+    mov $0x10, %eax
+    mov %eax, %ds
+    mov %eax, %es
+    mov %eax, %ss
+    mov %eax, %fs
+    mov %eax, %gs
 
-    mov esp, offset 0x490000
+    mov $0x490000, %esp
     call run_xcodes
 
     // Clear MTRRs
     // WB caching with valid bit
-    xor ecx, ecx
-    mov ebx, offset 0x806
-    mov ch, 0x2
+    xor %ecx, %ecx
+    mov $0x806, %ebx
+    mov $0x2, %ch
+
 mtrr_clear:
-    xor eax, eax
-    xor edx, edx
+    xor %eax, %eax
+    xor %edx, %edx
     wrmsr
-    inc ecx
-    cmp cl, 0xf
+    inc %ecx
+    cmp $0xf, %cl
     jna mtrr_clear
 
-    mov cl, 0xff
-    mov eax, ebx
+    mov $0xff, %cl
+    mov %ebx, %eax
     wrmsr
 
     // Clear CD, NW
-    mov eax, cr0
-    and eax, 0x9fffffff
-    mov cr0, eax
+    mov %cr0, %eax
+    and $0x9fffffff, %eax
+    mov %eax, %cr0
 
     jmp boot_startup
 
 .code16
 
+.global start16
 start16:
-    .byte 0x66
-    lgdt [cs:GDTR]
+    lgdtl %cs:GDTR
 
-    mov eax, cr0
-    or al, 1
-    mov cr0, eax
+    mov %cr0, %eax
+    orb $1, %al
+    mov %eax, %cr0
 
-    .byte 0x66
-    .code32
-    ljmp 0x8, start32
+    ljmpl $0x8, $start32
 
 .section .reset, "ax"
 .global reset_vector
@@ -91,4 +89,4 @@ start16:
 
 reset_vector:
     cli
-    jmp short start16
+    jmp start16

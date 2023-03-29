@@ -1,5 +1,3 @@
-.intel_syntax noprefix
-
 .section .rom_meta, "ax"
 
 /* MCPX Magic Values - clock timings*/

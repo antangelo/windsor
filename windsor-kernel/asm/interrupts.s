@@ -1,17 +1,16 @@
-.intel_syntax noprefix
 .global kenter
 
 .section .text
 
 kenter:
-    // Zero bss
-    xor eax, eax
-    mov edi, offset __start_bss_ram
-    mov ecx, offset __bss_size
-    shr ecx, 2
-    rep stosw
+    // Zero BSS
+    xor %eax, %eax
+    mov $__start_bss_ram, %edi
+    mov $__bss_size, %ecx
+    shr $2, %ecx
+    rep stosl
 
     // Start kernel
-    mov esp, offset __kernel_stack
-    mov ebp, esp
+    mov $__kernel_stack, %esp
+    mov %esp, %ebp
     jmp kmain
