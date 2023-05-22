@@ -6,10 +6,10 @@ pub static mut IDTR: idt::Descriptor = idt::Descriptor::zero();
 pub fn setup_irq() {
     unsafe {
         for i in 0..=255 {
-            IDT[i] = idt::Entry::new(irq_unhandled as u32, idt::GateType::Interrupt, 0x8).entry();
+            IDT[i] = idt::Entry::new(irq_unhandled as u32, idt::GateType::Interrupt, 0x8).raw_value();
         }
 
-        IDT[8] = idt::Entry::new(irq_gpf as u32, idt::GateType::Interrupt, 0x8).entry();
+        IDT[8] = idt::Entry::new(irq_gpf as u32, idt::GateType::Interrupt, 0x8).raw_value();
         IDTR = idt::Descriptor::new(256 * 8, IDT.as_ptr() as u32);
 
         idt::lidt(&IDTR);

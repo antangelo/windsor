@@ -19,7 +19,9 @@ num-traits = { version = "0.2", default-features = false }
 num-derive = "0.3"
 volatile-register = "0.2.1"
 autopad = "1.0.0"
-proc-bitfield = { version = "0.2.2", features = ["nightly"] }
+proc-bitfield = { version = "0.2.2" }
+bitbybit = "1.2.0"
+arbitrary-int = "1.2.5"
 alloc-no-stdlib = "2.0.4"
 
 [profile.dev]

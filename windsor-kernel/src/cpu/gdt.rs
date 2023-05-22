@@ -1,36 +1,55 @@
 use core::arch::asm;
-use proc_bitfield::bitfield;
+use bitbybit::bitfield;
+use arbitrary_int::{u2, u4, u24};
 
-bitfield!(
-pub const struct GDTSegment(pub u64): FromRaw {
-    pub segment: u64 @ ..,
+#[bitfield(u64, default: 0)]
+pub struct GDTSegment {
+    #[bits(56..=63, rw)]
+    pub base_hi: u8,
 
-    pub base_hi: u16 @ 56..=63,
-    pub flags: u8 @ 52..=55,
-    pub limit_hi: u8 @ 48..=51,
+    #[bits(52..=55, rw)]
+    pub flags: u4,
 
-    pub present: bool @ 47,
-    pub privilege: u8 @ 45..=46,
-    pub descriptor_type: bool @ 44,
-    pub executable: bool @ 43,
-    pub dc: bool @ 42,
-    pub rw: bool @ 41,
-    pub access: bool @ 40,
-    pub access_byte: u8 @ 40..=47,
+    #[bits(48..=51, rw)]
+    pub limit_hi: u4,
 
-    pub base_lo: u32 @ 16..=39,
-    pub limit_lo: u32 @ 0..=15,
+    #[bit(47, rw)]
+    pub present: bool,
+
+    #[bits(45..=46, rw)]
+    pub privilege: u2,
+
+    #[bit(44, rw)]
+    pub descriptor_type: bool,
+
+    #[bit(43, rw)]
+    pub executable: bool,
+
+    #[bit(42, rw)]
+    pub dc: bool,
+
+    #[bit(41, rw)]
+    pub rw: bool,
+
+    #[bit(40, rw)]
+    pub access: bool,
+
+    #[bits(40..=47, rw)]
+    pub access_byte: u8,
+
+    #[bits(16..=39, rw)]
+    pub base_lo: u24,
+
+    #[bits(0..=15, rw)]
+    pub limit_lo: u16,
 }
-);
 
 impl GDTSegment {
     pub const fn null() -> Self {
-        GDTSegment(0)
+        Self::new_with_raw_value(0)
     }
 
     pub const fn flat(is_kernel: bool, is_data: bool) -> Self {
-        let mut seg = Self::null();
-
         let mut access_byte = 0;
         if is_kernel {
             access_byte |= 0x90;
@@ -44,12 +63,11 @@ impl GDTSegment {
             access_byte |= 0xa;
         }
 
-        seg.set_access_byte(access_byte);
-        seg.set_flags(0xc);
-        seg.set_limit_hi(0xff);
-        seg.set_limit_lo(0xffff);
-
-        seg
+        Self::null()
+            .with_access_byte(access_byte)
+            .with_flags(u4::new(0xc))
+            .with_limit_hi(u4::new(0xf))
+            .with_limit_lo(0xffff)
     }
 }
 

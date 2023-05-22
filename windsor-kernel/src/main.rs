@@ -3,7 +3,6 @@
 #![feature(pointer_byte_offsets)]
 #![feature(panic_info_message)]
 #![feature(const_mut_refs)]
-#![feature(const_trait_impl)]
 #![feature(abi_x86_interrupt)]
 #![feature(ptr_mask)]
 #![feature(int_roundings)]

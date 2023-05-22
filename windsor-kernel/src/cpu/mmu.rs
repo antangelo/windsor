@@ -45,7 +45,7 @@ pub unsafe trait PhysramAllocator {
 
 bitfield!(
 #[derive(Copy, Clone)]
-pub const struct PDEDirect(pub u32): FromRaw {
+pub struct PDEDirect(pub u32) {
     entry: u32 @ ..,
 
     pub present: bool @ 0,
@@ -83,7 +83,7 @@ impl PDEDirect {
 
 bitfield!(
 #[derive(Copy, Clone)]
-pub const struct PageTableEntry(pub u32): FromRaw {
+pub struct PageTableEntry(pub u32) {
     entry: u32 @ ..,
 
     pub present: bool @ 0,
@@ -110,7 +110,7 @@ impl PageTableEntry {
 
 bitfield!(
 #[derive(Copy, Clone)]
-pub const struct PDETable(pub u32): FromRaw {
+pub struct PDETable(pub u32) {
     entry: u32 @ ..,
 
     pub present: bool @ 0,
@@ -148,7 +148,7 @@ pub enum PDEType {
 
 bitfield!(
 #[derive(Copy, Clone)]
-pub const struct PageDirectoryEntry(pub u32): FromRaw {
+pub struct PageDirectoryEntry(pub u32) {
     entry: u32 @ ..,
 
     present: bool @ 0,
@@ -169,7 +169,7 @@ impl From<PDEDirect> for PageDirectoryEntry {
 }
 
 impl PageDirectoryEntry {
-    pub const fn to_pde(&self) -> PDEType {
+    pub fn to_pde(&self) -> PDEType {
         if !self.present() {
             return PDEType::None;
         }
@@ -203,7 +203,7 @@ const fn pte_offset_from_addr(addr: u32) -> usize {
 }
 
 bitfield!(
-pub const struct CR3(pub u32): FromRaw {
+pub struct CR3(pub u32) {
     register: u32 @ ..,
 
     pub writethrough: bool @ 3,
