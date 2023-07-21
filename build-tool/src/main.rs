@@ -33,7 +33,7 @@ fn rom_utilization(
     Ok(())
 }
 
-fn build_boot(bargs: &Vec<String>, kernel_path: &String) -> Result<u32, String> {
+fn build_boot(bargs: &Vec<String>, kernel_path: &String, toolchain: Option<String>) -> Result<u32, String> {
     let mut boot_args = vec!["--profile=opt-size"];
     boot_args.extend(
         bargs
@@ -62,7 +62,7 @@ fn build_boot(bargs: &Vec<String>, kernel_path: &String) -> Result<u32, String> 
         boot_args.join(" ")
     );
 
-    cargo::build(boot_path, &boot_args, &boot_envs).map_err(|e| e.to_string())?;
+    cargo::build(boot_path, &boot_args, &boot_envs, toolchain).map_err(|e| e.to_string())?;
 
     println!(
         "{} {}",
@@ -79,7 +79,7 @@ fn build_boot(bargs: &Vec<String>, kernel_path: &String) -> Result<u32, String> 
     Ok(len)
 }
 
-fn build_kernel(kargs: &Vec<String>) -> Result<String, String> {
+fn build_kernel(kargs: &Vec<String>, toolchain: Option<String>) -> Result<String, String> {
     let krnl_path = std::path::Path::new(config::KRNL_WORKSPACE_NAME);
     let krnl_args: Vec<&str> = kargs.iter().map(|s| s.as_str()).collect();
     let krnl_envs: Vec<(String, String)> = std::env::vars().collect();
@@ -95,7 +95,7 @@ fn build_kernel(kargs: &Vec<String>) -> Result<String, String> {
         krnl_args.join(" ")
     );
 
-    cargo::build(krnl_path, &krnl_args, &krnl_envs).map_err(|e| e.to_string())?;
+    cargo::build(krnl_path, &krnl_args, &krnl_envs, toolchain).map_err(|e| e.to_string())?;
 
     cargo::target_output_file(&krnl_args, config::TARGET, config::KRNL_WORKSPACE_NAME)
         .into_os_string()
@@ -104,9 +104,9 @@ fn build_kernel(kargs: &Vec<String>) -> Result<String, String> {
         .ok_or(String::from("Failed to get kernel target output path"))
 }
 
-fn build(kargs: &Vec<String>, bargs: &Vec<String>) -> Result<(), String> {
-    let kernel_elf_file = build_kernel(&kargs)?;
-    let image_size = build_boot(&bargs, &kernel_elf_file)?;
+fn build(kargs: &Vec<String>, bargs: &Vec<String>, toolchain: Option<String>) -> Result<(), String> {
+    let kernel_elf_file = build_kernel(&kargs, toolchain.clone())?;
+    let image_size = build_boot(&bargs, &kernel_elf_file, toolchain)?;
     rom_utilization(image_size, Path::new(&kernel_elf_file)).map_err(|e| e.to_string())?;
     Ok(())
 }
@@ -118,14 +118,21 @@ fn clean() -> Result<(), String> {
     Ok(())
 }
 
-fn parse_args(args: &Vec<String>) -> Result<(Vec<String>, Vec<String>), String> {
+fn parse_args(args: &Vec<String>) -> Result<(Vec<String>, Vec<String>, Option<String>), String> {
     let mut kernel_args: Vec<String> = vec![];
     let mut boot_args: Vec<String> = vec![];
+    let mut toolchain = None;
 
     if args.len() >= 2 {
         let mut for_boot = false;
+        let mut ignore = false;
 
         for i in 1..args.len() {
+            if ignore {
+                ignore = false;
+                continue;
+            }
+
             let arg = &args[i];
             if i == 1 && !arg.starts_with("-") {
                 continue;
@@ -141,26 +148,34 @@ fn parse_args(args: &Vec<String>) -> Result<(Vec<String>, Vec<String>), String> 
             match arg.as_str() {
                 "-B" => for_boot = true,
                 "--release" => into.push(arg.clone()),
+                "--toolchain" => {
+                    if let Some(tc) = args.get(i + 1) {
+                        toolchain = Some(tc.clone());
+                        ignore = true;
+                    } else {
+                        return Err(std::format!("No toolchain specified"));
+                    }
+                }
                 a => return Err(std::format!("Unknown argument {}", a)),
             }
         }
     }
 
-    Ok((kernel_args, boot_args))
+    Ok((kernel_args, boot_args, toolchain))
 }
 
 fn main() -> Result<(), String> {
     let args: Vec<String> = std::env::args().collect();
 
-    let (kernel_args, boot_args) = parse_args(&args)?;
+    let (kernel_args, boot_args, toolchain) = parse_args(&args)?;
 
     if args.len() <= 1 {
-        return build(&kernel_args, &boot_args);
+        return build(&kernel_args, &boot_args, toolchain);
     }
 
     if args[1] == "clean" {
         return clean();
     }
 
-    build(&kernel_args, &boot_args)
+    build(&kernel_args, &boot_args, toolchain)
 }

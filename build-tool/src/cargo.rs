@@ -12,11 +12,25 @@ pub fn build(
     dir: impl AsRef<Path>,
     args: &[&str],
     envs: &[(String, String)],
+    toolchain: Option<String>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut build_args = vec!["build"];
-    build_args.extend_from_slice(args);
+    let sys_envs: Vec<(String, String)> = std::env::vars().filter(|(e, _)| {
+        for (var, _) in envs.iter() {
+            if var == e {
+                return false;
+            }
+        }
 
-    let envs_ext: Vec<(String, String)> = envs.iter().cloned().collect();
+        true
+    }).collect();
+
+    let mut envs_ext: Vec<(String, String)> = envs.iter().cloned().collect();
+    envs_ext.extend(sys_envs.into_iter());
+
+    let toolchain = toolchain.as_ref().map(|s| s.as_str()).unwrap_or("nightly");
+    let toolchain = format!("+{}", toolchain);
+    let mut build_args = vec![&toolchain, "build"];
+    build_args.extend_from_slice(args);
 
     let build_status = Command::new("cargo")
         .current_dir(dir)
