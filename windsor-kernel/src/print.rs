@@ -63,10 +63,12 @@ unsafe fn print_string_bytes(
 pub struct VGAPrinter {
     fb_addr: *mut u32,
     fb_width: u32,
+    xmargin: u32,
+    ymargin: u32,
+
     bpp: u32,
     cursor_x: u32,
     cursor_y: u32,
-    margin_x: u32,
 }
 
 impl VGAPrinter {
@@ -74,11 +76,17 @@ impl VGAPrinter {
         Self {
             fb_addr,
             fb_width: vm.width,
+            xmargin: vm.xmargin,
+            ymargin: vm.ymargin,
             bpp: 4,
             cursor_x: 4 + vm.xmargin * 4,
             cursor_y: 1 + vm.ymargin,
-            margin_x: vm.xmargin,
         }
+    }
+
+    pub fn reset(&mut self) {
+        self.cursor_y = 1 + self.ymargin;
+        self.cursor_x = 4 + self.xmargin * 4;
     }
 
     pub fn print_string_bytes(&mut self, rgba: RGBA, string: &[u8]) {
@@ -98,10 +106,10 @@ impl VGAPrinter {
 
             self.cursor_x += width * self.bpp;
             if (string_lines.peek().is_some())
-                || (self.cursor_x > ((self.fb_width - self.margin_x) * self.bpp))
+                || (self.cursor_x > ((self.fb_width - self.xmargin) * self.bpp))
             {
                 self.cursor_y += font::HEIGHT as u32;
-                self.cursor_x = self.bpp + self.margin_x * self.bpp;
+                self.cursor_x = self.bpp + self.xmargin * self.bpp;
             }
         }
     }

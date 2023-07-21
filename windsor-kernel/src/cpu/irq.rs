@@ -39,8 +39,13 @@ impl StackFrame {
     }
 }
 
+pub extern "x86-interrupt" fn irq_nv2a(_sf: StackFrame) {
+    super::pic::reset();
+}
+
 pub extern "x86-interrupt" fn irq_unhandled(_sf: StackFrame) {
     //panic!("Unhandled interrupt");
+    super::pic::reset();
 }
 
 pub extern "x86-interrupt" fn irq_gpf(_sf: StackFrame, _code: u32) {

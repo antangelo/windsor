@@ -3,6 +3,7 @@ pub mod idt;
 pub mod io;
 pub mod irq;
 pub mod mmu;
+pub mod pic;
 
 use core::arch::asm;
 

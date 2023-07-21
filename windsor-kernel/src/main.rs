@@ -20,6 +20,8 @@ mod smbus;
 
 use core::panic::PanicInfo;
 
+pub static mut PRINTER: Option<print::VGAPrinter> = None;
+
 #[no_mangle]
 #[naked]
 pub unsafe extern "C" fn kenter() {
@@ -93,11 +95,28 @@ pub extern "C" fn kmain() -> ! {
     printer.print_string_bytes(print::COLOR_WHITE, "windsor ".as_bytes());
     printer.print_string_bytes(print::COLOR_WHITE, env!("CARGO_PKG_VERSION").as_bytes());
 
+    cpu::pic::init();
     cpu::sti();
+
+    let mut frame_count: u64 = 0;
+    let colors = [0xff00_0000, 0xff7aa0ff];
+    let text_colors = [print::COLOR_WHITE, print::COLOR_BLACK];
+    let mut color_toggle = 0;
 
     loop {
         if gpu.pmc.intr.read() != 0 {
+            frame_count += 1;
             unsafe { gpu.pcrtc.intr.write(0x1) };
+
+            if frame_count % 60 == 0 {
+                clear_screen(&video_mode, colors[color_toggle]);
+                printer.reset();
+                printer.print_string_bytes(text_colors[color_toggle], "windsor ".as_bytes());
+                printer.print_string_bytes(text_colors[color_toggle], env!("CARGO_PKG_VERSION").as_bytes());
+
+                color_toggle += 1;
+                color_toggle %= 2;
+            }
         }
     }
 }
